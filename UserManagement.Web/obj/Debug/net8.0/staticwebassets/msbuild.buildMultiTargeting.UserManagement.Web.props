@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\UserManagement.Web.props" />
+</Project>

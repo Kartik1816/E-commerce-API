@@ -1,0 +1,14 @@
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Domain\bin\Debug\net8.0\UserManagement.Domain.deps.json
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Domain\bin\Debug\net8.0\UserManagement.Domain.runtimeconfig.json
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Domain\bin\Debug\net8.0\UserManagement.Domain.dll
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Domain\bin\Debug\net8.0\UserManagement.Domain.pdb
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Domain\obj\Debug\net8.0\UserManagement.Domain.csproj.AssemblyReference.cache
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Domain\obj\Debug\net8.0\UserManagement.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Domain\obj\Debug\net8.0\UserManagement.Domain.AssemblyInfoInputs.cache
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Domain\obj\Debug\net8.0\UserManagement.Domain.AssemblyInfo.cs
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Domain\obj\Debug\net8.0\UserManagement.Domain.csproj.CoreCompileInputs.cache
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Domain\obj\Debug\net8.0\UserManagement.Domain.dll
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Domain\obj\Debug\net8.0\refint\UserManagement.Domain.dll
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Domain\obj\Debug\net8.0\UserManagement.Domain.pdb
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Domain\obj\Debug\net8.0\UserManagement.Domain.genruntimeconfig.cache
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Domain\obj\Debug\net8.0\ref\UserManagement.Domain.dll

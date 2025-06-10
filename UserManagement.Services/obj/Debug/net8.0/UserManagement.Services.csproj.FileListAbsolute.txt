@@ -1,0 +1,17 @@
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\bin\Debug\net8.0\UserManagement.Services.deps.json
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\bin\Debug\net8.0\UserManagement.Services.runtimeconfig.json
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\bin\Debug\net8.0\UserManagement.Services.dll
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\bin\Debug\net8.0\UserManagement.Services.pdb
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\bin\Debug\net8.0\UserManagement.Domain.dll
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\bin\Debug\net8.0\UserManagement.Domain.pdb
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net8.0\UserManagement.Services.csproj.AssemblyReference.cache
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net8.0\UserManagement.Services.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net8.0\UserManagement.Services.AssemblyInfoInputs.cache
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net8.0\UserManagement.Services.AssemblyInfo.cs
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net8.0\UserManagement.Services.csproj.CoreCompileInputs.cache
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net8.0\UserMana.89FD345E.Up2Date
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net8.0\UserManagement.Services.dll
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net8.0\refint\UserManagement.Services.dll
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net8.0\UserManagement.Services.pdb
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net8.0\UserManagement.Services.genruntimeconfig.cache
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net8.0\ref\UserManagement.Services.dll

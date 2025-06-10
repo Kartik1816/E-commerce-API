@@ -1,0 +1,89 @@
+@model UserManagement.Domain.ViewModels.AuthViewModel
+@{
+    Layout=null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css">
+     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
+
+    
+</head>
+<body>
+<div class="row body-background position-absolute h-100 backgroundImage w-100 justify-content-center">
+    <div class="col-sm-12 col-md-10 d-flex flex-column align-items-center justify-content-center">
+        <div class="card dashboard-card-size shadow login-card-size h-50 d-flex flex-row align-items-center justify-content-center w-75">
+            <div class="d-none d-md-block col-md-6 col-sm-12">
+                <img class="w-100 h-75 object-fit-cover" src="~/images/user-management.png" alt="">
+            </div>
+            <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                <div class="d-flex align-items-center justify-content-start pb-5">
+                    <h4>Welcome</h4>
+                </div>
+                <div class="d-flex align-items-center justify-content-center flex-column w-100">
+                <form class="form-container d-flex flex-column gap-3 w-75"  id="login-form" >
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="d-flex flex-column">
+                            <div class="input-group" class="py-2 d-flex flex-column">
+                            
+                                <input type="email" class="form-control" placeholder="Email*" id="email" asp-for="@Model.Email" name="Email">
+                                <img src="~/images/person.svg" alt="" class="tiny-svg">
+                                <span asp-validation-for="@Model.Email" class="text-danger"></span>
+                            </div>
+                            <p id="email-error" class="text-danger"></p>
+                        </div>
+                        <div>
+                        <div class="input-group">
+                            <input type="password" class="form-control input::-ms-reveal"  placeholder="Password*"
+                                id="password" asp-for="@Model.Password" name="Password">
+                            <img src="~/images/show-password.svg" onclick="showPassword()" class="tiny-svg "
+                                id="showpassword" />
+                            <img src="~/images/hide-password.svg" onclick="showPassword()" class="tiny-svg d-none"
+                                id="hidepassword" />
+                            <span asp-validation-for="@Model.Password" class="text-danger"></span>
+
+                        </div>
+                            <p id="password-error" class="text-danger"></p>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                        <div class="form-check mb-3">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" name="remember" id="rememberMe"> Remember me
+                            </label>
+                        </div>
+                    </div>
+                    
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    
+                    </form>
+                    <p id="login-error"  class="text-danger"></p>
+                </div>
+            </div>  
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+  @{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+  }
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/login.js" asp-append-version="true"></script>
+
+    </body>
+</html>
+
