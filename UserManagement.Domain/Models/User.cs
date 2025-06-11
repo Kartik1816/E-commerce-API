@@ -29,6 +29,8 @@ public partial class User
 
     public int? UpdatedBy { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public virtual ICollection<Category> CategoryCreatedByNavigations { get; set; } = new List<Category>();
 
     public virtual ICollection<Category> CategoryUpdatedByNavigations { get; set; } = new List<Category>();
@@ -42,6 +44,8 @@ public partial class User
     public virtual ICollection<Product> ProductCreatedByNavigations { get; set; } = new List<Product>();
 
     public virtual ICollection<Product> ProductUpdatedByNavigations { get; set; } = new List<Product>();
+
+    public virtual ICollection<Refreshtoken> Refreshtokens { get; set; } = new List<Refreshtoken>();
 
     public virtual Role Role { get; set; } = null!;
 

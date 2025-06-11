@@ -137,3 +137,4 @@ C:\Users\pca158\Desktop\UserAuthentication\UserManagement.API\obj\Debug\net8.0\r
 C:\Users\pca158\Desktop\UserAuthentication\UserManagement.API\obj\Debug\net8.0\UserManagement.API.pdb
 C:\Users\pca158\Desktop\UserAuthentication\UserManagement.API\obj\Debug\net8.0\UserManagement.API.genruntimeconfig.cache
 C:\Users\pca158\Desktop\UserAuthentication\UserManagement.API\obj\Debug\net8.0\ref\UserManagement.API.dll
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.API\obj\Debug\net8.0\UserManagement.API.sourcelink.json

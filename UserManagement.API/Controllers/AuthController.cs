@@ -36,12 +36,55 @@ public class AuthController : ControllerBase
             int roleId = user.RoleId;
             Role role = _authService.GetRoleById(roleId);
             string token = _generateJwt.GenerateJwtToken(user, role.Name);
-
-            return new JsonResult(new { success = true, message = "Login successful", token = token });
+            string refreshToken = _generateJwt.GenerateRefreshToken();
+            Refreshtoken refreshTokenEntity = new Refreshtoken
+            {
+                Token = refreshToken,
+                UserId = user.Id,
+                ExpireTime = DateTime.Now.AddDays(7)
+            };
+            bool isTokenSaved = _authService.SaveToken(refreshTokenEntity);
+            return new JsonResult(new { success = true, message = "Login successful", token = token, refreshToken = refreshToken });
         }
         else
         {
             return new JsonResult(new { success = false, message = "Incorrect Password" });
         }
     }
+    [HttpPost("refreshtoken")]
+    public IActionResult RefreshToken([FromBody] string refreshToken)
+    {
+        Refreshtoken refreshtoken = _authService.GetRefreshtoken(refreshToken);
+        if (refreshtoken == null || refreshtoken.ExpireTime < DateTime.UtcNow)
+        {
+            return Unauthorized("Invalid refresh token");
+        }
+
+        Role role = _authService.GetRoleById(refreshtoken.User.RoleId);
+        string newJwtToken = _generateJwt.GenerateJwtToken(refreshtoken.User, role.Name);
+        string newRefreshToken = _generateJwt.GenerateRefreshToken();
+
+        refreshtoken.Token = newRefreshToken;
+        refreshtoken.ExpireTime = DateTime.Now.AddDays(7);
+        bool isTokenUpdated = _authService.SaveToken(refreshtoken);
+        if (!isTokenUpdated)
+        {
+            return StatusCode(500, "Failed to update refresh token");
+        }
+        return new JsonResult(new
+        {
+            accessToken = newJwtToken,
+            refreshToken = newRefreshToken
+        });
+    }
+    [HttpPost("register")]
+    public async Task<IActionResult> Registration([FromBody] RegistrationViewModel registrationViewModel)
+    {
+        if (!ModelState.IsValid)
+        {
+            return new JsonResult(new { success = false, message = "Please Enter correct Data" });
+        }
+        return await _authService.RegisterUserAsync(registrationViewModel);
+    }
+    
 }

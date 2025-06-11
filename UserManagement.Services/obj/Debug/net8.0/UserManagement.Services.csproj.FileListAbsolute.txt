@@ -15,3 +15,4 @@ C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net
 C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net8.0\UserManagement.Services.pdb
 C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net8.0\UserManagement.Services.genruntimeconfig.cache
 C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net8.0\ref\UserManagement.Services.dll
+C:\Users\pca158\Desktop\UserAuthentication\UserManagement.Services\obj\Debug\net8.0\UserManagement.Services.sourcelink.json

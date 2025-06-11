@@ -4,6 +4,7 @@ namespace UserManagement.Services.JWT;
 
 public interface IGenerateJwt
 {
-    string GenerateJwtToken(User user,string role);
+    string GenerateJwtToken(User user, string role);
     int GetUserIdFromJwtToken(string token);
+    string GenerateRefreshToken();
 }
