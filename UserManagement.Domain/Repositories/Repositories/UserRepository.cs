@@ -81,4 +81,105 @@ public class UserRepository : IUserRepository
             throw new Exception("An Exception occured while registering user");
         }
     }
+    public async Task<RegistrationViewModel> GetUserProfileAsync(int userId)
+    {
+        try
+        {
+            User? user = await _userDbContext.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return null!;
+            }
+            RegistrationViewModel registrationViewModel = new RegistrationViewModel
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName ?? string.Empty,
+                Email = user.Email,
+                PhoneNumber = user.Phone,
+                Address = user.Address ?? string.Empty,
+                ImageUrl = user.ImageUrl ?? string.Empty,
+                RoleId = user.RoleId
+            };
+            return registrationViewModel;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("An Exception occured while fetching user profile" + e);
+        }
+    }
+    public async Task<IActionResult> SaveProfileAsync(EditProfileViewModel editProfileViewModel)
+    {
+        try
+        {
+            User? user = await _userDbContext.Users.FindAsync(editProfileViewModel.Id);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { success = false, message = "User not found" });
+            }
+            user.FirstName = editProfileViewModel.FirstName;
+            user.LastName = editProfileViewModel.LastName;
+            user.Email = editProfileViewModel.Email;
+            user.Phone = editProfileViewModel.PhoneNumber;
+            user.Address = editProfileViewModel.Address;
+            user.UpdatedAt = DateTime.Now;
+            user.RoleId = editProfileViewModel.RoleId;
+            if (editProfileViewModel.ImageUrl != null)
+            {
+                user.ImageUrl = editProfileViewModel.ImageUrl;
+            }
+            _userDbContext.Users.Update(user);
+            await _userDbContext.SaveChangesAsync();
+            return new JsonResult(new { success = true, message = "Profile updated successfully" });
+        }
+        catch (Exception e)
+        {
+            throw new Exception("An Exception occured while saving profile" + e);
+        }
+    }
+    public IActionResult SaveOTP(int otp, string email)
+    {
+        try
+        {
+            User? user = _userDbContext.Users.FirstOrDefault(u => u.Email == email);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { success = false, message = "User not found" });
+            }
+            user.Otp = otp;
+            user.OtpExpireTime = DateTime.Now.AddHours(1);
+            _userDbContext.Users.Update(user);
+            _userDbContext.SaveChanges();
+            return new JsonResult(new { success = true, message = "OTP Sent successfully", otp = otp });
+        }
+        catch (Exception e)
+        {
+            throw new Exception("An Exception occured while saving OTP" + e);
+        }
+    }
+    public IActionResult VerifyOTP(OtpViewModel otpViewModel)
+    {
+        try
+        {
+            User? user = _userDbContext.Users.FirstOrDefault(u => u.Email == otpViewModel.Email);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { success = false, message = "User not found" });
+            }
+            if (user.Otp != otpViewModel.OTP || user.OtpExpireTime < DateTime.Now)
+            {
+                return new BadRequestObjectResult(new { success = false, message = "Invalid or expired OTP" });
+            }
+            user.Otp = null;
+            user.OtpExpireTime = null;
+            _userDbContext.Users.Update(user);
+            _userDbContext.SaveChanges();
+            return new JsonResult(new { success = true, message = "OTP verified successfully" });
+        }
+        catch (Exception e)
+        {
+            throw new Exception("An Exception occured while verifying OTP" + e);
+        }
+    }
+
 }

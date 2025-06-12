@@ -31,6 +31,10 @@ public partial class User
 
     public string? ImageUrl { get; set; }
 
+    public int? Otp { get; set; }
+
+    public DateTime? OtpExpireTime { get; set; }
+
     public virtual ICollection<Category> CategoryCreatedByNavigations { get; set; } = new List<Category>();
 
     public virtual ICollection<Category> CategoryUpdatedByNavigations { get; set; } = new List<Category>();

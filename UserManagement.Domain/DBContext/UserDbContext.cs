@@ -181,6 +181,10 @@ public partial class UserDbContext : DbContext
             entity.Property(e => e.LastName)
                 .HasMaxLength(20)
                 .HasColumnName("last_name");
+            entity.Property(e => e.Otp).HasColumnName("otp");
+            entity.Property(e => e.OtpExpireTime)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("otp_expire_time");
             entity.Property(e => e.Password)
                 .HasMaxLength(100)
                 .HasColumnName("password");
