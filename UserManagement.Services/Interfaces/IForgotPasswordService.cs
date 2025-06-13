@@ -8,4 +8,5 @@ public interface IForgotPasswordService
     public bool IsUserWithEmailPresent(string email);
     public IActionResult SaveOTP(int otp, string email);
     public IActionResult VerifyOTP(OtpViewModel otpViewModel);
+    public IActionResult ResetPassword(ResetPasswordViewModel resetPasswordViewModel);
 }

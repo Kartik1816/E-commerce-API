@@ -33,6 +33,15 @@ public class ForgotPasswordController : ControllerBase
         {
             return new JsonResult(new { success = false, message = "Please Enter correct Data" });
         }
-       return _forgotPasswordService.VerifyOTP(otpViewModel);
+        return _forgotPasswordService.VerifyOTP(otpViewModel);
+    }
+    [HttpPost("resetpassword")]
+    public IActionResult ResetPassword([FromBody] ResetPasswordViewModel resetPasswordViewModel)
+    {
+        if (!ModelState.IsValid)
+        {
+            return new JsonResult(new { success = false, message = "Please Enter correct Data" });
+        }
+        return _forgotPasswordService.ResetPassword(resetPasswordViewModel);
     }
 }

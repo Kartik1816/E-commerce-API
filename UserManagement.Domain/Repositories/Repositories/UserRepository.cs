@@ -181,5 +181,52 @@ public class UserRepository : IUserRepository
             throw new Exception("An Exception occured while verifying OTP" + e);
         }
     }
-
+    public IActionResult ResetPassword(ResetPasswordViewModel resetPasswordViewModel)
+    {
+        try
+        {
+            User? user = _userDbContext.Users.FirstOrDefault(u => u.Email == resetPasswordViewModel.Email);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { success = false, message = "User not found" });
+            }
+            user.Password = resetPasswordViewModel.NewPassword;
+            user.Otp = null;
+            user.OtpExpireTime = null;
+            _userDbContext.Users.Update(user);
+            _userDbContext.SaveChanges();
+            return new JsonResult(new { success = true, message = "Password reset successfully" });
+        }
+        catch (Exception e)
+        {
+            throw new Exception("An Exception occured while resetting password" + e);
+        }
+    }
+    public async Task<IActionResult> ChangePasswordAsync(ChangePasswordViewModel changePasswordViewModel)
+    {
+        try
+        {
+            User? user = await _userDbContext.Users.FindAsync(changePasswordViewModel.Id);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { success = false, message = "User not found" });
+            }
+            if (user.Password != changePasswordViewModel.OldPassword)
+            {
+                return new JsonResult(new { success = false, message = "Old password is incorrect" });
+            }
+            if (changePasswordViewModel.NewPassword != changePasswordViewModel.ConfirmPassword)
+            {
+                return new JsonResult(new { success = false, message = "New password and confirm password do not match" });
+            }
+            user.Password = changePasswordViewModel.NewPassword;
+            _userDbContext.Users.Update(user);
+            await _userDbContext.SaveChangesAsync();
+            return new JsonResult(new { success = true, message = "Password changed successfully" });
+        }
+        catch (Exception e)
+        {
+            throw new Exception("An Exception occured while changing password" + e);
+        }
+    }
 }

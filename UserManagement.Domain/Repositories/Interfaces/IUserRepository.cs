@@ -13,4 +13,6 @@ public interface IUserRepository
     public Task<IActionResult> SaveProfileAsync(EditProfileViewModel editProfileViewModel);
     public IActionResult SaveOTP(int otp, string email);
     public IActionResult VerifyOTP(OtpViewModel otpViewModel);
+    public IActionResult ResetPassword(ResetPasswordViewModel resetPasswordViewModel);
+    public Task<IActionResult> ChangePasswordAsync(ChangePasswordViewModel changePasswordViewModel);
 }

@@ -24,4 +24,8 @@ public class ForgotPasswordService : IForgotPasswordService
     {
         return _userRepository.VerifyOTP(otpViewModel);
     }
+    public IActionResult ResetPassword(ResetPasswordViewModel resetPasswordViewModel)
+    {
+        return _userRepository.ResetPassword(resetPasswordViewModel);
+    }
 }
