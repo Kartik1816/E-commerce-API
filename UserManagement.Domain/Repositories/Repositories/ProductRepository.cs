@@ -14,7 +14,7 @@ public class ProductRepository : IProductRepository
     {
         _userDbContext = userDbContext;
     }
-    public async Task<IActionResult> SaveProductAsync(ProductViewModel productViewModel,int userId)
+    public async Task<IActionResult> SaveProductAsync(ProductViewModel productViewModel)
     {
         try
         {
@@ -26,12 +26,15 @@ public class ProductRepository : IProductRepository
             {
                 Product product = await _userDbContext.Products.FirstOrDefaultAsync(p => p.Id == productViewModel.Id) ?? new Product();
                 product.Name = productViewModel.Name;
-                product.Rate = productViewModel.Rate;
+                product.Rate = productViewModel.Price;
                 product.Description = productViewModel.Description;
                 product.CategoryId = productViewModel.CategoryId;
-                product.UpdatedBy = userId;
-                product.UpdatedAt = DateTime.UtcNow;
-
+                product.UpdatedBy = productViewModel.UserId;
+                product.UpdatedAt = DateTime.Now;
+                if (productViewModel.ImageUrl != null)
+                {
+                    product.ImageUrl = productViewModel.ImageUrl;
+                }
                 _userDbContext.Products.Update(product);
                 await _userDbContext.SaveChangesAsync();
 
@@ -44,9 +47,10 @@ public class ProductRepository : IProductRepository
                     Name = productViewModel.Name,
                     Description = productViewModel.Description,
                     CategoryId = productViewModel.CategoryId,
-                    Rate = productViewModel.Rate,
-                    CreatedAt = DateTime.UtcNow,
-                    CreatedBy = userId
+                    Rate = productViewModel.Price,
+                    CreatedAt = DateTime.Now,
+                    CreatedBy = productViewModel.UserId,
+                    ImageUrl = productViewModel.ImageUrl
                 };
                 _userDbContext.Products.Add(product);
                 await _userDbContext.SaveChangesAsync();
@@ -58,6 +62,29 @@ public class ProductRepository : IProductRepository
         catch (Exception ex)
         {
             throw new Exception("An Exception occured while saving the product" + ex);
+        }
+    }
+    public async Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId)
+    {
+        try
+        {
+            List<Product> products = await _userDbContext.Products
+                .Where(p => p.CategoryId == categoryId)
+                .ToListAsync();
+
+            return products.Select(p => new ProductViewModel
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description ?? string.Empty,
+                Price = p.Rate,
+                CategoryId = p.CategoryId,
+                ImageUrl = p.ImageUrl
+            }).ToList();
+        }
+        catch (Exception e)
+        {
+            throw new Exception("An Exception occurred while fetching products: " + e.Message);
         }
     }
 }

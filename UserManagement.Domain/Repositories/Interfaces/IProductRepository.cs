@@ -5,5 +5,6 @@ namespace UserManagement.Domain.Repositories.Interfaces;
 
 public interface IProductRepository
 {
-    public Task<IActionResult> SaveProductAsync(ProductViewModel productViewModel,int userId);
+    public Task<IActionResult> SaveProductAsync(ProductViewModel productViewModel);
+    public Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId);
 }

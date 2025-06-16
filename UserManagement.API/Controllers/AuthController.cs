@@ -65,7 +65,7 @@ public class AuthController : ControllerBase
         string newRefreshToken = _generateJwt.GenerateRefreshToken();
 
         refreshtoken.Token = newRefreshToken;
-        refreshtoken.ExpireTime = DateTime.Now.AddDays(7);
+        refreshtoken.ExpireTime = DateTime.Now.AddMinutes(10);
         bool isTokenUpdated = _authService.SaveToken(refreshtoken);
         if (!isTokenUpdated)
         {

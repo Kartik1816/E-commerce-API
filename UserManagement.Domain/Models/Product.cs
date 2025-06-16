@@ -27,11 +27,11 @@ public partial class Product
 
     public int CreatedBy { get; set; }
 
-    public int UpdatedBy { get; set; }
+    public int? UpdatedBy { get; set; }
 
     public virtual Category Category { get; set; } = null!;
 
     public virtual User CreatedByNavigation { get; set; } = null!;
 
-    public virtual User UpdatedByNavigation { get; set; } = null!;
+    public virtual User? UpdatedByNavigation { get; set; }
 }

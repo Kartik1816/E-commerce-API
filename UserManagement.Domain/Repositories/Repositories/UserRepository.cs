@@ -17,7 +17,7 @@ public class UserRepository : IUserRepository
     {
         try
         {
-            User user = _userDbContext.Users.FirstOrDefault(u => u.Email == authViewModel.Email) ?? new User();
+            User user = _userDbContext.Users.FirstOrDefault(u => u.Email == authViewModel.Email.ToLower()) ?? new User();
             if (user != null && user.Password == authViewModel.Password)
             {
                 return user;
@@ -59,7 +59,7 @@ public class UserRepository : IUserRepository
             {
                 FirstName = registrationViewModel.FirstName,
                 LastName = registrationViewModel.LastName,
-                Email = registrationViewModel.Email,
+                Email = registrationViewModel.Email.ToLower(),
                 Password = registrationViewModel.Password,
                 RoleId = registrationViewModel.RoleId,
                 CreatedAt = DateTime.Now,
@@ -123,7 +123,6 @@ public class UserRepository : IUserRepository
             user.Phone = editProfileViewModel.PhoneNumber;
             user.Address = editProfileViewModel.Address;
             user.UpdatedAt = DateTime.Now;
-            user.RoleId = editProfileViewModel.RoleId;
             if (editProfileViewModel.ImageUrl != null)
             {
                 user.ImageUrl = editProfileViewModel.ImageUrl;

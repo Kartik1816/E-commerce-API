@@ -45,7 +45,7 @@ public partial class UserDbContext : DbContext
                 .HasColumnName("created_at");
             entity.Property(e => e.CreatedBy).HasColumnName("created_by");
             entity.Property(e => e.Description)
-                .HasMaxLength(200)
+                .HasColumnType("character varying")
                 .HasColumnName("description");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
@@ -113,7 +113,6 @@ public partial class UserDbContext : DbContext
 
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.ProductUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("products_updated_by_fkey");
         });
 

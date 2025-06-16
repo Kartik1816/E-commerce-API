@@ -44,7 +44,6 @@ public class EditProfileViewModel
     public string Address { get; set; } = null!;
 
     public IFormFile? Image { get; set; } 
-    public int RoleId { get; set; }
     public string? ImageUrl { get; set; }
     public int Id { get; set; }
 }
