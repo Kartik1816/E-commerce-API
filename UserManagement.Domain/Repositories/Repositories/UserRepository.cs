@@ -140,7 +140,7 @@ public class UserRepository : IUserRepository
     {
         try
         {
-            User? user = _userDbContext.Users.FirstOrDefault(u => u.Email == email);
+            User? user = _userDbContext.Users.FirstOrDefault(u => u.Email == email.ToLower());
             if (user == null)
             {
                 return new NotFoundObjectResult(new { success = false, message = "User not found" });

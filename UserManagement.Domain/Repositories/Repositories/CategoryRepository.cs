@@ -17,13 +17,12 @@ public class CategoryRepository : ICategoryRepository
     {
         try
         {
-            List<Category> categories = await _userDbContext.Categories.ToListAsync();
-            return categories.Select(c => new CategoryViewModel
+            return await _userDbContext.Categories.Select(c => new CategoryViewModel
             {
                 Id = c.Id,
                 Name = c.Name,
                 Description = c.Description ?? string.Empty
-            }).ToList();
+            }).ToListAsync();
         }
         catch (Exception e)
         {

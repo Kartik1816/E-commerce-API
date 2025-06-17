@@ -24,7 +24,15 @@ public class ProductRepository : IProductRepository
             }
             if (productViewModel.Id > 0)
             {
-                Product product = await _userDbContext.Products.FirstOrDefaultAsync(p => p.Id == productViewModel.Id) ?? new Product();
+                if (await _userDbContext.Products.AnyAsync(p => p.Name == productViewModel.Name && p.Id != productViewModel.Id))
+                {
+                    return new JsonResult(new { success = false, message = "Product with name already exist" });
+                }
+                Product? product = await _userDbContext.Products.FirstOrDefaultAsync(p => p.Id == productViewModel.Id);
+                if (product == null)
+                {
+                    return new JsonResult(new { success = false, message = "Product object not found" });
+                }
                 product.Name = productViewModel.Name;
                 product.Rate = productViewModel.Price;
                 product.Description = productViewModel.Description;
@@ -42,7 +50,11 @@ public class ProductRepository : IProductRepository
             }
             else
             {
-                Product product = new Product
+                if (await _userDbContext.Products.AnyAsync(p => p.Name == productViewModel.Name))
+                {
+                    return new JsonResult(new { success = false, messager = "Product Already exist" });
+                }
+                Product product = new()
                 {
                     Name = productViewModel.Name,
                     Description = productViewModel.Description,
@@ -68,11 +80,7 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            List<Product> products = await _userDbContext.Products
-                .Where(p => p.CategoryId == categoryId)
-                .ToListAsync();
-
-            return products.Select(p => new ProductViewModel
+            return await _userDbContext.Products.Where(p => p.CategoryId == categoryId && p.IsDeleted== false).Select(p => new ProductViewModel
             {
                 Id = p.Id,
                 Name = p.Name,
@@ -80,11 +88,58 @@ public class ProductRepository : IProductRepository
                 Price = p.Rate,
                 CategoryId = p.CategoryId,
                 ImageUrl = p.ImageUrl
-            }).ToList();
+            }).ToListAsync();
         }
         catch (Exception e)
         {
             throw new Exception("An Exception occurred while fetching products: " + e.Message);
+        }
+    }
+    public async Task<IActionResult> GetProductDetails(int productId)
+    {
+        try
+        {
+            ProductViewModel? product = await _userDbContext.Products.Where(p => p.Id == productId).Select(p => new ProductViewModel
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description ?? string.Empty,
+                Price = p.Rate,
+                CategoryId = p.CategoryId,
+                ImageUrl = p.ImageUrl,
+                Discount = (decimal)(p.Discount ?? 0),
+
+            }).FirstOrDefaultAsync();
+
+            if (product == null)
+            {
+                return new JsonResult(new { success = false, message = "Product not found" });
+            }
+
+            return new JsonResult(new { success = true, data = product });
+        }
+        catch (Exception e)
+        {
+            throw new Exception("An Exception occurred while fetching product details: " + e.Message);
+        }
+    }
+    public async Task<IActionResult> DeleteProduct(int productId)
+    {
+        try
+        {
+            Product? product = await _userDbContext.Products.Where(p => p.Id == productId).FirstOrDefaultAsync();
+            if (product == null)
+            {
+                return new JsonResult(new { success = false, message = "Product not found" });
+            }
+            product.IsDeleted = true;
+            _userDbContext.Products.Update(product);
+            await _userDbContext.SaveChangesAsync();
+            return new JsonResult(new { success = true, message = "Product deleted successfully" });
+        }
+        catch (Exception e)
+        {
+            throw new Exception("An exception occured while deleting the product " + e);
         }
     }
 }

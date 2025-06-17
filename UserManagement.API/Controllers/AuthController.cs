@@ -41,7 +41,7 @@ public class AuthController : ControllerBase
             {
                 Token = refreshToken,
                 UserId = user.Id,
-                ExpireTime = DateTime.Now.AddDays(7)
+                ExpireTime = DateTime.Now.AddMinutes(10)
             };
             bool isTokenSaved = _authService.SaveToken(refreshTokenEntity);
             return new JsonResult(new { success = true, message = "Login successful", token = token, refreshToken = refreshToken });

@@ -27,7 +27,7 @@ public class CLAController : ControllerBase
     public async Task<IActionResult> GetProductsByCategory(int categoryId)
     {
         List<ProductViewModel> products = await _claService.GetProductsByCategoryAsync(categoryId);
-        if (products == null || !products.Any())
+        if (products == null)
         {
             return NotFound(new { success = false, message = "No products found for this category" });
         }
@@ -42,5 +42,23 @@ public class CLAController : ControllerBase
             return new JsonResult(new { success = false, message = "Please Enter Valid Data" });
         }
         return await _claService.SaveProduct(productViewModel);
+    }
+    [HttpGet("{productId}")]
+    public async Task<IActionResult> GetProductDetails(int productId)
+    {
+        if (productId <= 0)
+        {
+            return new JsonResult(new { success = true, message = "Product not found" });
+        }
+        return await _claService.GetProductDetails(productId);
+    }
+    [HttpDelete("{productId}")]
+    public async Task<IActionResult> DeleteProduct(int productId)
+    {
+        if (productId <= 0)
+        {
+            return new JsonResult(new { success = true, message = "Product not found" });
+        }
+        return await _claService.DeleteProduct(productId);
     }
 }

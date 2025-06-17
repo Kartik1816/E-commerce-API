@@ -28,4 +28,12 @@ public class CLAService : ICLAService
     {
         return await _productRepository.SaveProductAsync(productViewModel);
     }
+    public async Task<IActionResult> GetProductDetails(int productId)
+    {
+        return await _productRepository.GetProductDetails(productId);
+    }
+    public async Task<IActionResult> DeleteProduct(int productId)
+    {
+        return await _productRepository.DeleteProduct(productId);
+    }
 }

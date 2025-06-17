@@ -29,6 +29,8 @@ public partial class Product
 
     public int? UpdatedBy { get; set; }
 
+    public decimal? Discount { get; set; }
+
     public virtual Category Category { get; set; } = null!;
 
     public virtual User CreatedByNavigation { get; set; } = null!;
