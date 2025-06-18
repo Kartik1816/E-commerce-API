@@ -45,6 +45,8 @@ public partial class User
 
     public virtual ICollection<User> InverseUpdatedByNavigation { get; set; } = new List<User>();
 
+    public virtual ICollection<ProductCart> ProductCarts { get; set; } = new List<ProductCart>();
+
     public virtual ICollection<Product> ProductCreatedByNavigations { get; set; } = new List<Product>();
 
     public virtual ICollection<Product> ProductUpdatedByNavigations { get; set; } = new List<Product>();
@@ -54,4 +56,6 @@ public partial class User
     public virtual Role Role { get; set; } = null!;
 
     public virtual User? UpdatedByNavigation { get; set; }
+
+    public virtual ICollection<UserWishlist> UserWishlists { get; set; } = new List<UserWishlist>();
 }

@@ -52,6 +52,15 @@ public class CLAController : ControllerBase
         }
         return await _claService.GetProductDetails(productId);
     }
+    [HttpGet("GetProductDetails")]
+    public async Task<IActionResult> GetProductDetailsWithWishList([FromQuery] int productId, [FromQuery] int userId)
+    {
+        if (productId <= 0 || userId <= 0)
+        {
+            return new JsonResult(new { success = false, message = "Invalid product or user ID" });
+        }
+        return await _claService.GetProducGetProductDetailsWithWishListtDetails(productId, userId);
+    }
     [HttpDelete("{productId}")]
     public async Task<IActionResult> DeleteProduct(int productId)
     {

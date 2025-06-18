@@ -9,10 +9,12 @@ namespace UserManagement.Domain.Repositories.Repositories;
 public class CategoryRepository : ICategoryRepository
 {
     private readonly UserDbContext _userDbContext;
+
     public CategoryRepository(UserDbContext userDbContext)
     {
         _userDbContext = userDbContext;
     }
+    
     public async Task<List<CategoryViewModel>> GetAllCategoriesAsync()
     {
         try

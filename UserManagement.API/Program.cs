@@ -36,7 +36,12 @@ builder.Services.AddScoped<IForgotPasswordService, ForgotPasswordService>();
 builder.Services.AddScoped<IChangePasswordService, ChangePasswordService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICLAService, CLAService>();
+builder.Services.AddScoped<IWishListRepository, WishListRepository>();
+builder.Services.AddScoped<IWishListService, WishListService>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters

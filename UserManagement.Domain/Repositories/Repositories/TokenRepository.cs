@@ -8,10 +8,12 @@ namespace UserManagement.Domain.Repositories.Repositories;
 public class TokenRepository : ITokenRepository
 {
     private readonly UserDbContext _userDbContext;
+    
     public TokenRepository(UserDbContext userDbContext)
     {
         _userDbContext = userDbContext;
     }
+
     public bool SaveToken(Refreshtoken token)
     {
         try
@@ -34,11 +36,12 @@ public class TokenRepository : ITokenRepository
             return false;
         }
     }
+    
     public Refreshtoken GetRefreshtoken(string token)
     {
         try
         {
-            return _userDbContext.Refreshtokens.Where(t=>t.Token == token).Include(t=>t.User).FirstOrDefault() ?? new Refreshtoken();
+            return _userDbContext.Refreshtokens.Where(t => t.Token == token).Include(t => t.User).FirstOrDefault() ?? new Refreshtoken();
         }
         catch (Exception)
         {

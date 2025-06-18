@@ -35,5 +35,9 @@ public partial class Product
 
     public virtual User CreatedByNavigation { get; set; } = null!;
 
+    public virtual ICollection<ProductCart> ProductCarts { get; set; } = new List<ProductCart>();
+
     public virtual User? UpdatedByNavigation { get; set; }
+
+    public virtual ICollection<UserWishlist> UserWishlists { get; set; } = new List<UserWishlist>();
 }

@@ -10,10 +10,12 @@ namespace UserManagement.Domain.Repositories.Repositories;
 public class ProductRepository : IProductRepository
 {
     private readonly UserDbContext _userDbContext;
+
     public ProductRepository(UserDbContext userDbContext)
     {
         _userDbContext = userDbContext;
     }
+
     public async Task<IActionResult> SaveProductAsync(ProductViewModel productViewModel)
     {
         try
@@ -76,11 +78,12 @@ public class ProductRepository : IProductRepository
             throw new Exception("An Exception occured while saving the product" + ex);
         }
     }
+
     public async Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId)
     {
         try
         {
-            return await _userDbContext.Products.Where(p => p.CategoryId == categoryId && p.IsDeleted== false).Select(p => new ProductViewModel
+            return await _userDbContext.Products.Where(p => p.CategoryId == categoryId && p.IsDeleted == false).Select(p => new ProductViewModel
             {
                 Id = p.Id,
                 Name = p.Name,
@@ -95,6 +98,7 @@ public class ProductRepository : IProductRepository
             throw new Exception("An Exception occurred while fetching products: " + e.Message);
         }
     }
+
     public async Task<IActionResult> GetProductDetails(int productId)
     {
         try
@@ -123,6 +127,7 @@ public class ProductRepository : IProductRepository
             throw new Exception("An Exception occurred while fetching product details: " + e.Message);
         }
     }
+
     public async Task<IActionResult> DeleteProduct(int productId)
     {
         try
@@ -132,6 +137,7 @@ public class ProductRepository : IProductRepository
             {
                 return new JsonResult(new { success = false, message = "Product not found" });
             }
+
             product.IsDeleted = true;
             _userDbContext.Products.Update(product);
             await _userDbContext.SaveChangesAsync();
@@ -140,6 +146,35 @@ public class ProductRepository : IProductRepository
         catch (Exception e)
         {
             throw new Exception("An exception occured while deleting the product " + e);
+        }
+    }
+    public async Task<IActionResult> GetProducGetProductDetailsWithWishListtDetails(int productId, int userId)
+    {
+        try
+        {
+            ProductViewModel? product = await _userDbContext.Products.Where(p => p.Id == productId).Select(p => new ProductViewModel
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description ?? string.Empty,
+                Price = p.Rate,
+                CategoryId = p.CategoryId,
+                ImageUrl = p.ImageUrl,
+                Discount = (decimal)(p.Discount ?? 0),
+                IsInWishList = _userDbContext.UserWishlists.Where(uw => uw.UserId == userId && uw.ProductId == productId).Select(uw => uw.IsFavourite ?? false).FirstOrDefault(),
+                IsInCart = _userDbContext.ProductCarts.Where(uc => uc.UserId == userId && uc.ProductId == productId).Any()
+            }).FirstOrDefaultAsync();
+
+            if (product == null)
+            {
+                return new JsonResult(new { success = false, message = "Product not found" });
+            }
+
+            return new JsonResult(new { success = true, data = product });
+        }
+        catch (Exception e)
+        {
+            throw new Exception("An Exception occurred while fetching product details: " + e.Message);
         }
     }
 }

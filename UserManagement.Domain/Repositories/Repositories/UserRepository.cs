@@ -9,10 +9,12 @@ namespace UserManagement.Domain.Repositories.Repositories;
 public class UserRepository : IUserRepository
 {
     private readonly UserDbContext _userDbContext;
+    
     public UserRepository(UserDbContext userDbContext)
     {
         _userDbContext = userDbContext;
     }
+
     public User GetvalidUser(AuthViewModel authViewModel)
     {
         try
@@ -32,6 +34,7 @@ public class UserRepository : IUserRepository
             throw new Exception("An Exception occured while fetching user" + e);
         }
     }
+
     public bool IsUserPresent(string email)
     {
         try
@@ -43,6 +46,7 @@ public class UserRepository : IUserRepository
             throw new Exception("An Exception occured while fetching user" + e);
         }
     }
+
     public async Task<IActionResult> RegisterUserAsync(RegistrationViewModel registrationViewModel)
     {
         try
@@ -81,6 +85,7 @@ public class UserRepository : IUserRepository
             throw new Exception("An Exception occured while registering user");
         }
     }
+
     public async Task<RegistrationViewModel> GetUserProfileAsync(int userId)
     {
         try
@@ -108,6 +113,7 @@ public class UserRepository : IUserRepository
             throw new Exception("An Exception occured while fetching user profile" + e);
         }
     }
+
     public async Task<IActionResult> SaveProfileAsync(EditProfileViewModel editProfileViewModel)
     {
         try
@@ -136,6 +142,7 @@ public class UserRepository : IUserRepository
             throw new Exception("An Exception occured while saving profile" + e);
         }
     }
+
     public IActionResult SaveOTP(int otp, string email)
     {
         try
@@ -156,6 +163,7 @@ public class UserRepository : IUserRepository
             throw new Exception("An Exception occured while saving OTP" + e);
         }
     }
+
     public IActionResult VerifyOTP(OtpViewModel otpViewModel)
     {
         try
@@ -180,6 +188,7 @@ public class UserRepository : IUserRepository
             throw new Exception("An Exception occured while verifying OTP" + e);
         }
     }
+
     public IActionResult ResetPassword(ResetPasswordViewModel resetPasswordViewModel)
     {
         try
@@ -201,6 +210,7 @@ public class UserRepository : IUserRepository
             throw new Exception("An Exception occured while resetting password" + e);
         }
     }
+
     public async Task<IActionResult> ChangePasswordAsync(ChangePasswordViewModel changePasswordViewModel)
     {
         try

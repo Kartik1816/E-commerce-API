@@ -20,11 +20,15 @@ public partial class UserDbContext : DbContext
 
     public virtual DbSet<Product> Products { get; set; }
 
+    public virtual DbSet<ProductCart> ProductCarts { get; set; }
+
     public virtual DbSet<Refreshtoken> Refreshtokens { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
+
+    public virtual DbSet<UserWishlist> UserWishlists { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -83,7 +87,7 @@ public partial class UserDbContext : DbContext
                 .HasColumnName("created_at");
             entity.Property(e => e.CreatedBy).HasColumnName("created_by");
             entity.Property(e => e.Description)
-                .HasMaxLength(500)
+                .HasColumnType("character varying")
                 .HasColumnName("description");
             entity.Property(e => e.Discount).HasColumnName("discount");
             entity.Property(e => e.ImageUrl)
@@ -115,6 +119,25 @@ public partial class UserDbContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.ProductUpdatedByNavigations)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("products_updated_by_fkey");
+        });
+
+        modelBuilder.Entity<ProductCart>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.ProductId }).HasName("product_cart_pkey");
+
+            entity.ToTable("product_cart");
+
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.Quantity).HasColumnName("quantity");
+
+            entity.HasOne(d => d.Product).WithMany(p => p.ProductCarts)
+                .HasForeignKey(d => d.ProductId)
+                .HasConstraintName("product_cart_product_id_fkey");
+
+            entity.HasOne(d => d.User).WithMany(p => p.ProductCarts)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("product_cart_user_id_fkey");
         });
 
         modelBuilder.Entity<Refreshtoken>(entity =>
@@ -208,6 +231,27 @@ public partial class UserDbContext : DbContext
             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.InverseUpdatedByNavigation)
                 .HasForeignKey(d => d.UpdatedBy)
                 .HasConstraintName("users_updated_by_fkey");
+        });
+
+        modelBuilder.Entity<UserWishlist>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.ProductId }).HasName("user_wishlist_pkey");
+
+            entity.ToTable("user_wishlist");
+
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.IsFavourite)
+                .HasDefaultValue(false)
+                .HasColumnName("is_favourite");
+
+            entity.HasOne(d => d.Product).WithMany(p => p.UserWishlists)
+                .HasForeignKey(d => d.ProductId)
+                .HasConstraintName("user_wishlist_product_id_fkey");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserWishlists)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("user_wishlist_user_id_fkey");
         });
 
         OnModelCreatingPartial(modelBuilder);
