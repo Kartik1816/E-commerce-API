@@ -26,6 +26,8 @@ public partial class UserDbContext : DbContext
 
     public virtual DbSet<Role> Roles { get; set; }
 
+    public virtual DbSet<SubscribedUser> SubscribedUsers { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserWishlist> UserWishlists { get; set; }
@@ -43,31 +45,12 @@ public partial class UserDbContext : DbContext
             entity.ToTable("categories");
 
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("created_at");
-            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
             entity.Property(e => e.Description)
                 .HasColumnType("character varying")
                 .HasColumnName("description");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasColumnName("name");
-            entity.Property(e => e.UpdatedAt)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("updated_at");
-            entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
-
-            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.CategoryCreatedByNavigations)
-                .HasForeignKey(d => d.CreatedBy)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("categories_created_by_fkey");
-
-            entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.CategoryUpdatedByNavigations)
-                .HasForeignKey(d => d.UpdatedBy)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("categories_updated_by_fkey");
         });
 
         modelBuilder.Entity<Product>(entity =>
@@ -89,7 +72,12 @@ public partial class UserDbContext : DbContext
             entity.Property(e => e.Description)
                 .HasColumnType("character varying")
                 .HasColumnName("description");
-            entity.Property(e => e.Discount).HasColumnName("discount");
+            entity.Property(e => e.Discount)
+                .HasPrecision(10, 2)
+                .HasColumnName("discount");
+            entity.Property(e => e.DiscountAmount)
+                .HasPrecision(10, 2)
+                .HasColumnName("discount_amount");
             entity.Property(e => e.ImageUrl)
                 .HasMaxLength(200)
                 .HasColumnName("image_url");
@@ -173,6 +161,18 @@ public partial class UserDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(20)
                 .HasColumnName("name");
+        });
+
+        modelBuilder.Entity<SubscribedUser>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("subscribed_user_pkey");
+
+            entity.ToTable("subscribed_user");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Email)
+                .HasMaxLength(128)
+                .HasColumnName("email");
         });
 
         modelBuilder.Entity<User>(entity =>

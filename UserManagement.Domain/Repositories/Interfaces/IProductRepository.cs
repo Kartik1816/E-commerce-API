@@ -12,6 +12,10 @@ public interface IProductRepository
     public Task<IActionResult> GetProductDetails(int productId);
 
     public Task<IActionResult> DeleteProduct(int productId);
-    
-    public Task<IActionResult> GetProducGetProductDetailsWithWishListtDetails(int productId,int userId);
+
+    public Task<IActionResult> GetProducGetProductDetailsWithWishListtDetails(int productId, int userId);
+
+    public Task<IActionResult> GetMinMaxDiscount();
+
+    public Task<IActionResult> GetOfferedProducts();
 }

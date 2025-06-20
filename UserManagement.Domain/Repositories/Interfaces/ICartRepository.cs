@@ -10,4 +10,8 @@ public interface ICartRepository
     public Task<IActionResult> RemoveProductFromCart(CartModel cartModel);
 
     public Task<IActionResult> GetCartProducts(int userId);
+
+    public Task<IActionResult> IncreaseQuantity(CartModel cartModel);
+
+    public Task<IActionResult> DecreaseQuantity(CartModel cartModel);
 }

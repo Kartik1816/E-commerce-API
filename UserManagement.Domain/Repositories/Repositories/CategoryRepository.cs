@@ -24,7 +24,7 @@ public class CategoryRepository : ICategoryRepository
                 Id = c.Id,
                 Name = c.Name,
                 Description = c.Description ?? string.Empty
-            }).ToListAsync();
+            }).OrderBy(c=>c.Id).ToListAsync();
         }
         catch (Exception e)
         {

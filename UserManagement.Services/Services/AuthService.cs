@@ -27,20 +27,25 @@ public class AuthService : IAuthService
     {
         return _userRepository.IsUserPresent(email);
     }
+
     public Role GetRoleById(int roleId)
     {
         return _roleRepository.GetRoleById(roleId);
     }
+
     public bool SaveToken(Refreshtoken token)
     {
         return _tokenRepository.SaveToken(token);
     }
+
     public Refreshtoken GetRefreshtoken(string token)
     {
         return _tokenRepository.GetRefreshtoken(token);
     }
+
     public async Task<IActionResult> RegisterUserAsync(RegistrationViewModel registrationViewModel)
     {
         return await _userRepository.RegisterUserAsync(registrationViewModel);
     }
+    
 }

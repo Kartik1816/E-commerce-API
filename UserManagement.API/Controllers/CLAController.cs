@@ -1,3 +1,4 @@
+using System.Net.Mail;
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.Domain.ViewModels;
 using UserManagement.Services.Interfaces;
@@ -69,5 +70,36 @@ public class CLAController : ControllerBase
             return new JsonResult(new { success = true, message = "Product not found" });
         }
         return await _claService.DeleteProduct(productId);
+    }
+
+    [HttpPost("subscribe-user")]
+    public async Task<IActionResult> SubscribeNewUser([FromBody] string email)
+    {
+        MailAddress mailAddress = new System.Net.Mail.MailAddress(email);
+
+        if (mailAddress.Address != email)
+        {
+            return new JsonResult(new { success = true, message = "Inavalid email format" });
+        }
+        return await _claService.SubscribeUser(email);
+    }
+
+    [HttpGet("GetMinMaxDiscount")]
+    public async Task<IActionResult> GetMinMaxDiscount()
+    {
+        return await _claService.GetMinMaxDiscount();
+    }
+
+    [HttpGet("GetAllSubscribedUsers")]
+    public async Task<IActionResult> GetAllSubScribedUsers()
+    {
+        SubscribedUsersModel subscribedUsersModel = await _claService.GetAllSubScribedUsers();
+        return new JsonResult(new { data = subscribedUsersModel });
+    }
+
+    [HttpGet("GetOfferedProducts")]
+    public async Task<IActionResult> GetOfferedProducts()
+    {
+        return await _claService.GetOfferedProducts();
     }
 }

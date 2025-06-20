@@ -70,7 +70,8 @@ public class CartRepository : ICartRepository
                     ProductId = pc.ProductId,
                     Quantity = pc.Quantity,
                     ProductName = _userDbContext.Products.Where(p => p.Id == pc.ProductId).Select(p => p.Name).FirstOrDefault() ?? "N/A",
-                    Price = _userDbContext.Products.Where(p=>p.Id == pc.ProductId).Select(p => p.Rate).FirstOrDefault()
+                    Price = _userDbContext.Products.Where(p => p.Id == pc.ProductId).Select(p => p.Rate).FirstOrDefault()
+                 - (_userDbContext.Products.Where(p => p.Id == pc.ProductId).Select(p => p.DiscountAmount).FirstOrDefault() ?? 0)
                 })
                 .ToListAsync();
 
@@ -79,6 +80,49 @@ public class CartRepository : ICartRepository
         catch (Exception e)
         {
             throw new Exception("An Exception occured while fetching products" + e);
+        }
+    }
+
+    public async Task<IActionResult> IncreaseQuantity(CartModel cartModel)
+    {
+        try
+        {
+            ProductCart? productCart = await _userDbContext.ProductCarts.Where(pc => pc.UserId == cartModel.UserId && pc.ProductId == cartModel.ProductId).FirstOrDefaultAsync();
+            if (productCart == null)
+            {
+                return new JsonResult(new { success = false, message = "Product is not in the cart" });
+            }
+            productCart.Quantity = productCart.Quantity + 1;
+            _userDbContext.ProductCarts.Update(productCart);
+            await _userDbContext.SaveChangesAsync();
+            return new JsonResult(new { success = true, message = "Quantity increased successfully" });
+        }
+        catch (Exception e)
+        {
+            throw new Exception("An Exception occured while increasing product quantity to cart" + e);
+        }
+    }
+    public async Task<IActionResult> DecreaseQuantity(CartModel cartModel)
+    {
+        try
+        {
+            ProductCart? productCart = await _userDbContext.ProductCarts.Where(pc => pc.UserId == cartModel.UserId && pc.ProductId == cartModel.ProductId).FirstOrDefaultAsync();
+            if (productCart == null)
+            {
+                return new JsonResult(new { success = false, message = "Product is not in the cart" });
+            }
+            if (productCart.Quantity == 1)
+            {
+                return new JsonResult(new { success = false, message = "Quantity can not be 0" });
+            }
+            productCart.Quantity = productCart.Quantity - 1;
+            _userDbContext.ProductCarts.Update(productCart);
+            await _userDbContext.SaveChangesAsync();
+            return new JsonResult(new { success = true, message = "Quantity decreased successfully" });
+        }
+        catch (Exception e)
+        {
+            throw new Exception("An Exception occured while increasing product quantity to cart" + e);
         }
     }
 }

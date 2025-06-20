@@ -21,7 +21,7 @@ public partial class Product
 
     public bool? IsDeleted { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
 
@@ -30,6 +30,8 @@ public partial class Product
     public int? UpdatedBy { get; set; }
 
     public decimal? Discount { get; set; }
+
+    public decimal? DiscountAmount { get; set; }
 
     public virtual Category Category { get; set; } = null!;
 

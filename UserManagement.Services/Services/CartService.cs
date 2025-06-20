@@ -28,4 +28,14 @@ public class CartService : ICartService
     {
         return await _cartRepository.GetCartProducts(userId);
     }
+
+    public async Task<IActionResult> IncreaseQuantity(CartModel cartModel)
+    {
+        return await _cartRepository.IncreaseQuantity(cartModel);
+    }
+
+    public async Task<IActionResult> DecreaseQuantity(CartModel cartModel)
+    {
+        return await _cartRepository.DecreaseQuantity(cartModel);
+    }
 }

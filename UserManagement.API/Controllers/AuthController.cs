@@ -18,6 +18,8 @@ public class AuthController : ControllerBase
         _authService = authService;
         _generateJwt = generateJwt;
     }
+
+    //Login API
     [HttpPost("login")]
     public IActionResult Login([FromBody] AuthViewModel authViewModel)
     {
@@ -51,32 +53,43 @@ public class AuthController : ControllerBase
             return new JsonResult(new { success = false, message = "Incorrect Password" });
         }
     }
+
+    //Chnaging refresh token API
     [HttpPost("refreshtoken")]
     public IActionResult RefreshToken([FromBody] string refreshToken)
     {
         Refreshtoken refreshtoken = _authService.GetRefreshtoken(refreshToken);
+
         if (refreshtoken == null || refreshtoken.ExpireTime < DateTime.UtcNow)
         {
             return Unauthorized("Invalid refresh token");
         }
 
         Role role = _authService.GetRoleById(refreshtoken.User.RoleId);
+
         string newJwtToken = _generateJwt.GenerateJwtToken(refreshtoken.User, role.Name);
+
         string newRefreshToken = _generateJwt.GenerateRefreshToken();
 
         refreshtoken.Token = newRefreshToken;
+
         refreshtoken.ExpireTime = DateTime.Now.AddMinutes(10);
+
         bool isTokenUpdated = _authService.SaveToken(refreshtoken);
+
         if (!isTokenUpdated)
         {
             return StatusCode(500, "Failed to update refresh token");
         }
+
         return new JsonResult(new
         {
             accessToken = newJwtToken,
             refreshToken = newRefreshToken
         });
     }
+
+    //Registration API
     [HttpPost("register")]
     public async Task<IActionResult> Registration([FromBody] RegistrationViewModel registrationViewModel)
     {
@@ -84,6 +97,7 @@ public class AuthController : ControllerBase
         {
             return new JsonResult(new { success = false, message = "Please Enter correct Data" });
         }
+        
         return await _authService.RegisterUserAsync(registrationViewModel);
     }
     

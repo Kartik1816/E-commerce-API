@@ -11,17 +11,5 @@ public partial class Category
 
     public string? Description { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
-
-    public DateTime? UpdatedAt { get; set; }
-
-    public int CreatedBy { get; set; }
-
-    public int UpdatedBy { get; set; }
-
-    public virtual User CreatedByNavigation { get; set; } = null!;
-
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
-
-    public virtual User UpdatedByNavigation { get; set; } = null!;
 }

@@ -9,11 +9,13 @@ public class CLAService : ICLAService
 {
     private readonly ICategoryRepository _categoryRepository;
     private readonly IProductRepository _productRepository;
+    private readonly ISubscribedUserRepository _subscribedUserRepository;
 
-    public CLAService(ICategoryRepository categoryRepository, IProductRepository productRepository)
+    public CLAService(ICategoryRepository categoryRepository, IProductRepository productRepository, ISubscribedUserRepository subscribedUserRepository)
     {
         _categoryRepository = categoryRepository;
         _productRepository = productRepository;
+        _subscribedUserRepository = subscribedUserRepository;
     }
 
     public async Task<List<CategoryViewModel>> GetAllCategoriesAsync()
@@ -40,5 +42,25 @@ public class CLAService : ICLAService
     public async Task<IActionResult> GetProducGetProductDetailsWithWishListtDetails(int productId, int userId)
     {
         return await _productRepository.GetProducGetProductDetailsWithWishListtDetails(productId, userId);
+    }
+
+    public async Task<IActionResult> SubscribeUser(string email)
+    {
+        return await _subscribedUserRepository.SubscribeUser(email);
+    }
+
+    public async Task<IActionResult> GetMinMaxDiscount()
+    {
+        return await _productRepository.GetMinMaxDiscount();
+    }
+
+    public async Task<SubscribedUsersModel> GetAllSubScribedUsers()
+    {
+        return await _subscribedUserRepository.GetAllSubScribedUsers();
+    }
+
+    public async Task<IActionResult> GetOfferedProducts()
+    {
+        return await _productRepository.GetOfferedProducts();
     }
 }

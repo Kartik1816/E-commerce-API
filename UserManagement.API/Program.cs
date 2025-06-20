@@ -40,6 +40,7 @@ builder.Services.AddScoped<IWishListRepository, WishListRepository>();
 builder.Services.AddScoped<IWishListService, WishListService>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<ISubscribedUserRepository, SubscribedUserRepository>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
     .AddJwtBearer(options =>

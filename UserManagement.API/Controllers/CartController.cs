@@ -35,6 +35,7 @@ public class CartController : ControllerBase
         }
         return await _cartService.RemoveProductFromCart(cartModel);
     }
+
     [HttpGet("cartProducts/{userId}")]
     public async Task<IActionResult> GetCartProducts(int userId)
     {
@@ -43,5 +44,27 @@ public class CartController : ControllerBase
             return new JsonResult(new { success = false, message = "User Not Found" });
         }
         return await _cartService.GetCartProducts(userId);
+    }
+
+    [HttpPost("increase-quantity")]
+    public async Task<IActionResult> IncreaseQuantity([FromBody] CartModel cartModel)
+    {
+        if (cartModel.ProductId <= 0 || cartModel.UserId <= 0)
+        {
+            return new JsonResult(new { success = false, message = "Product or User not found" });
+        }
+        return await _cartService.IncreaseQuantity(cartModel);
+
+    }
+
+    [HttpPost("decrease-quantity")]
+    public async Task<IActionResult> DecreaseQuantity([FromBody] CartModel cartModel)
+    {
+        if (cartModel.ProductId <= 0 || cartModel.UserId <= 0)
+        {
+            return new JsonResult(new { success = false, message = "Product or User not found" });
+        }
+        return await _cartService.DecreaseQuantity(cartModel);
+
     }
 }
