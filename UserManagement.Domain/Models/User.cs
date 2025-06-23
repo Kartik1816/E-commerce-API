@@ -41,6 +41,8 @@ public partial class User
 
     public virtual ICollection<User> InverseUpdatedByNavigation { get; set; } = new List<User>();
 
+    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+
     public virtual ICollection<ProductCart> ProductCarts { get; set; } = new List<ProductCart>();
 
     public virtual ICollection<Product> ProductCreatedByNavigations { get; set; } = new List<Product>();

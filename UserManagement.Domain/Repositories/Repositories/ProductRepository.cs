@@ -36,7 +36,7 @@ public class ProductRepository : IProductRepository
                 {
                     return new JsonResult(new { success = false, message = "Product object not found" });
                 }
-                decimal OldDiscountAmount = (decimal)(product.DiscountAmount ?? 0);
+                decimal OldDiscount = (decimal)(product.Discount ?? 0);
 
                 product.Name = productViewModel.Name;
                 product.Rate = productViewModel.Price;
@@ -45,17 +45,15 @@ public class ProductRepository : IProductRepository
                 product.UpdatedBy = productViewModel.UserId;
                 product.UpdatedAt = DateTime.Now;
                 product.Discount = productViewModel.Discount;
-                product.DiscountAmount = productViewModel.DiscountAmount;
-
                 if (productViewModel.ImageUrl != null)
                 {
                     product.ImageUrl = productViewModel.ImageUrl;
                 }
                 _userDbContext.Products.Update(product);
                 await _userDbContext.SaveChangesAsync();
-                if (OldDiscountAmount < product.DiscountAmount)
+                if (OldDiscount < product.Discount)
                 {
-                    return new JsonResult(new { success = true, message = "Product Updated successfully", offer = true });
+                    return new JsonResult(new { success = true, message = "Product Updated successfully", offer = true,data=productViewModel });
                 }
                 return new JsonResult(new { success = true, message = "Product Updated successfully", offer = false });
             }
@@ -74,14 +72,14 @@ public class ProductRepository : IProductRepository
                     CreatedAt = DateTime.Now,
                     CreatedBy = productViewModel.UserId,
                     ImageUrl = productViewModel.ImageUrl,
-                    Discount = productViewModel.Discount,
-                    DiscountAmount = productViewModel.DiscountAmount
+                    Discount = productViewModel.Discount
                 };
                 _userDbContext.Products.Add(product);
                 await _userDbContext.SaveChangesAsync();
-                if (product.DiscountAmount > 0)
+                if (product.Discount > 0)
                 {
-                    return new JsonResult(new { success = true, message = "Product Added successfully", offer = true });
+                    productViewModel.Id = product.Id;
+                    return new JsonResult(new { success = true, message = "Product Added successfully", offer = true,data=productViewModel });
                 }
                 return new JsonResult(new { success = true, message = "Product Added successfully", offer = false });
 
@@ -105,7 +103,7 @@ public class ProductRepository : IProductRepository
                 Price = p.Rate,
                 CategoryId = p.CategoryId,
                 ImageUrl = p.ImageUrl
-            }).ToListAsync();
+            }).OrderBy(p=>p.Id).ToListAsync();
         }
         catch (Exception e)
         {
@@ -126,7 +124,7 @@ public class ProductRepository : IProductRepository
                 CategoryId = p.CategoryId,
                 ImageUrl = p.ImageUrl,
                 Discount = (decimal)(p.Discount ?? 0),
-                DiscountAmount = (decimal)(p.DiscountAmount ?? 0)
+                DiscountAmount =Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0),2)
 
             }).FirstOrDefaultAsync();
 
@@ -176,7 +174,7 @@ public class ProductRepository : IProductRepository
                 CategoryId = p.CategoryId,
                 ImageUrl = p.ImageUrl,
                 Discount = (decimal)(p.Discount ?? 0),
-                DiscountAmount = (decimal)(p.DiscountAmount ?? 0),
+                DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0),2),
                 IsInWishList = _userDbContext.UserWishlists.Where(uw => uw.UserId == userId && uw.ProductId == productId).Select(uw => uw.IsFavourite ?? false).FirstOrDefault(),
                 IsInCart = _userDbContext.ProductCarts.Where(uc => uc.UserId == userId && uc.ProductId == productId).Any()
             }).FirstOrDefaultAsync();
@@ -232,7 +230,7 @@ public class ProductRepository : IProductRepository
                 CategoryId = p.CategoryId,
                 ImageUrl = p.ImageUrl,
                 Discount = (decimal)(p.Discount ?? 0),
-                DiscountAmount = (decimal)(p.DiscountAmount ?? 0)
+                DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0),2)
             }).ToListAsync();
 
             return new JsonResult(new { data = products });
