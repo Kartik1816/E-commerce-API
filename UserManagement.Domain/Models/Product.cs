@@ -31,11 +31,11 @@ public partial class Product
 
     public decimal? Discount { get; set; }
 
-    public decimal? DiscountAmount { get; set; }
-
     public virtual Category Category { get; set; } = null!;
 
     public virtual User CreatedByNavigation { get; set; } = null!;
+
+    public virtual ICollection<OrderProduct> OrderProducts { get; set; } = new List<OrderProduct>();
 
     public virtual ICollection<ProductCart> ProductCarts { get; set; } = new List<ProductCart>();
 

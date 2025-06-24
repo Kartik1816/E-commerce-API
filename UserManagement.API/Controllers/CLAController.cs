@@ -1,4 +1,5 @@
 using System.Net.Mail;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.Domain.ViewModels;
 using UserManagement.Services.Interfaces;
@@ -24,10 +25,10 @@ public class CLAController : ControllerBase
         }
         return Ok(new { success = true, data = categories });
     }
-    [HttpGet("products/{categoryId}")]
-    public async Task<IActionResult> GetProductsByCategory(int categoryId)
+    [HttpGet("products")]
+    public async Task<IActionResult> GetProductsByCategory([FromQuery] int categoryId, [FromQuery] int userId)
     {
-        List<ProductViewModel> products = await _claService.GetProductsByCategoryAsync(categoryId);
+        List<ProductViewModel> products = await _claService.GetProductsByCategoryAsync(categoryId,userId);
         if (products == null)
         {
             return NotFound(new { success = false, message = "No products found for this category" });

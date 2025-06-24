@@ -70,8 +70,8 @@ public class CartRepository : ICartRepository
                     ProductId = pc.ProductId,
                     Quantity = pc.Quantity,
                     ProductName = _userDbContext.Products.Where(p => p.Id == pc.ProductId).Select(p => p.Name).FirstOrDefault() ?? "N/A",
-                    Price = _userDbContext.Products.Where(p => p.Id == pc.ProductId).Select(p => p.Rate).FirstOrDefault()
-                 - (_userDbContext.Products.Where(p => p.Id == pc.ProductId).Select(p => p.DiscountAmount).FirstOrDefault() ?? 0)
+                    Price =Math.Round(_userDbContext.Products.Where(p => p.Id == pc.ProductId).Select(p => p.Rate).FirstOrDefault()
+                 - (_userDbContext.Products.Where(p => p.Id == pc.ProductId).Select(p => p.Rate).FirstOrDefault()*(_userDbContext.Products.Where(p => p.Id == pc.ProductId).Select(p => p.Discount).FirstOrDefault() ?? 0)/100),2)
                 })
                 .ToListAsync();
 
@@ -83,6 +83,22 @@ public class CartRepository : ICartRepository
         }
     }
 
+    public async Task<List<Product>> GetProductDetailsInCart(int userId)
+    {
+        try
+        {
+            List<Product> cartProducts = await _userDbContext.Products
+            .Where(p => _userDbContext.ProductCarts.Any(pc => pc.ProductId == p.Id && pc.UserId == userId))
+            .Include(p=>p.Category)
+            .ToListAsync();
+
+            return cartProducts;
+        }
+        catch (Exception e)
+        {
+            throw new Exception("An Exception occured while fetching products" + e);
+        }
+    }
     public async Task<IActionResult> IncreaseQuantity(CartModel cartModel)
     {
         try

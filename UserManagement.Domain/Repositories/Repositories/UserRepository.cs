@@ -57,7 +57,7 @@ public class UserRepository : IUserRepository
             }
             if (_userDbContext.Users.Any(u => u.Email == registrationViewModel.Email))
             {
-                return new BadRequestObjectResult(new { success = false, message = "User already exists" });
+                return new JsonResult(new { success = false, message = "User already exists" });
             }
             User user = new User
             {

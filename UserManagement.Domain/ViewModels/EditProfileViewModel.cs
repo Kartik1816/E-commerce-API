@@ -25,12 +25,12 @@ public class EditProfileViewModel
 
     [Required(ErrorMessage = "First Name is required.")]
     [MaxLength(20, ErrorMessage = "First Name cannot exceed 20 characters.")]
-    [RegularExpression(@"^[a-zA-Z]{2,}$", ErrorMessage = "First Name must be at least 2 characters long and can only contain letters and spaces.")]
+    [RegularExpression(@"^[a-zA-Z]{2,}$", ErrorMessage = "First Name must be at least 2 characters long and can only contain letters.")]
     public string FirstName { get; set; } = null!;
 
     [Required(ErrorMessage = "Last Name is required.")]
     [MaxLength(20, ErrorMessage = "Last Name cannot exceed 20 characters.")]
-    [RegularExpression(@"^[a-zA-Z]{2,}$", ErrorMessage = "Last Name must be at least 2 characters long and can only contain letters and spaces.")]
+    [RegularExpression(@"^[a-zA-Z]{2,}$", ErrorMessage = "Last Name must be at least 2 characters long and can only contain letters.")]
     public string LastName { get; set; } = null!;
 
     [Required(ErrorMessage = "Phone Number is required.")]

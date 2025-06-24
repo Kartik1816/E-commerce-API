@@ -84,33 +84,34 @@ public partial class UserDbContext : DbContext
 
         modelBuilder.Entity<OrderProduct>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("order_product");
+            entity.HasKey(e => new { e.OrderId, e.ProductId }).HasName("order_product_pkey");
 
+            entity.ToTable("order_product");
+
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.CategoryName)
                 .HasMaxLength(50)
                 .HasColumnName("category_name");
             entity.Property(e => e.Discount)
                 .HasPrecision(10, 2)
                 .HasColumnName("discount");
-            entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.Price)
                 .HasPrecision(10, 2)
                 .HasColumnName("price");
-            entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.ProductName)
                 .HasMaxLength(50)
                 .HasColumnName("product_name");
+            entity.Property(e => e.Quantity)
+                .HasDefaultValue(0)
+                .HasColumnName("quantity");
 
-            entity.HasOne(d => d.Order).WithMany()
+            entity.HasOne(d => d.Order).WithMany(p => p.OrderProducts)
                 .HasForeignKey(d => d.OrderId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("order_product_order_id_fkey");
 
-            entity.HasOne(d => d.Product).WithMany()
+            entity.HasOne(d => d.Product).WithMany(p => p.OrderProducts)
                 .HasForeignKey(d => d.ProductId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("order_product_product_id_fkey");
         });
 
@@ -136,9 +137,6 @@ public partial class UserDbContext : DbContext
             entity.Property(e => e.Discount)
                 .HasPrecision(10, 2)
                 .HasColumnName("discount");
-            entity.Property(e => e.DiscountAmount)
-                .HasPrecision(10, 2)
-                .HasColumnName("discount_amount");
             entity.Property(e => e.ImageUrl)
                 .HasMaxLength(200)
                 .HasColumnName("image_url");

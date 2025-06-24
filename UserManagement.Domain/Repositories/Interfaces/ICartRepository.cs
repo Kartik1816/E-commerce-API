@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using UserManagement.Domain.Models;
 using UserManagement.Domain.ViewModels;
 
 namespace UserManagement.Domain.Repositories.Interfaces;
@@ -14,4 +15,6 @@ public interface ICartRepository
     public Task<IActionResult> IncreaseQuantity(CartModel cartModel);
 
     public Task<IActionResult> DecreaseQuantity(CartModel cartModel);
+
+    public Task<List<Product>> GetProductDetailsInCart(int userId);
 }

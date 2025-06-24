@@ -16,4 +16,6 @@ public partial class Order
     public int CreatedBy { get; set; }
 
     public virtual User CreatedByNavigation { get; set; } = null!;
+
+    public virtual ICollection<OrderProduct> OrderProducts { get; set; } = new List<OrderProduct>();
 }

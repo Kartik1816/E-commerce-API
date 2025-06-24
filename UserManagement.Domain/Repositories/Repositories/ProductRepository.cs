@@ -26,7 +26,6 @@ public class ProductRepository : IProductRepository
             }
             if (productViewModel.Id > 0)
             {
-                bool isOffer = false;
                 if (await _userDbContext.Products.AnyAsync(p => p.Name == productViewModel.Name && p.Id != productViewModel.Id))
                 {
                     return new JsonResult(new { success = false, message = "Product with name already exist" });
@@ -53,7 +52,8 @@ public class ProductRepository : IProductRepository
                 await _userDbContext.SaveChangesAsync();
                 if (OldDiscount < product.Discount)
                 {
-                    return new JsonResult(new { success = true, message = "Product Updated successfully", offer = true,data=productViewModel });
+                    productViewModel.ImageUrl = product.ImageUrl;
+                    return new JsonResult(new { success = true, message = "Product Updated successfully", offer = true, data = productViewModel });
                 }
                 return new JsonResult(new { success = true, message = "Product Updated successfully", offer = false });
             }
@@ -91,18 +91,19 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId)
+    public async Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId,int userId)
     {
         try
         {
-            return await _userDbContext.Products.Where(p => p.CategoryId == categoryId && p.IsDeleted == false).Select(p => new ProductViewModel
+            return await _userDbContext.Products.Where(p => p.CategoryId == categoryId && p.IsDeleted == false && p.CreatedBy == userId).Select(p => new ProductViewModel
             {
                 Id = p.Id,
                 Name = p.Name,
                 Description = p.Description ?? string.Empty,
                 Price = p.Rate,
                 CategoryId = p.CategoryId,
-                ImageUrl = p.ImageUrl
+                ImageUrl = p.ImageUrl,
+                UserId = p.CreatedBy
             }).OrderBy(p=>p.Id).ToListAsync();
         }
         catch (Exception e)
@@ -124,8 +125,8 @@ public class ProductRepository : IProductRepository
                 CategoryId = p.CategoryId,
                 ImageUrl = p.ImageUrl,
                 Discount = (decimal)(p.Discount ?? 0),
-                DiscountAmount =Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0),2)
-
+                DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0), 2),
+                UserId = p.CreatedBy
             }).FirstOrDefaultAsync();
 
             if (product == null)
@@ -154,6 +155,19 @@ public class ProductRepository : IProductRepository
             product.IsDeleted = true;
             _userDbContext.Products.Update(product);
             await _userDbContext.SaveChangesAsync();
+
+            List<ProductCart> userCartItems = _userDbContext.ProductCarts
+                    .Where(pc => pc.ProductId == product.Id)
+                    .ToList();
+            
+            if (userCartItems.Count > 0)
+            {
+                foreach (ProductCart productcart in userCartItems)
+                {
+                    _userDbContext.ProductCarts.Remove(productcart);
+                        _userDbContext.SaveChanges();
+                }
+            }
             return new JsonResult(new { success = true, message = "Product deleted successfully" });
         }
         catch (Exception e)
@@ -221,7 +235,7 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            List<ProductViewModel> products = await _userDbContext.Products.Where(p => p.IsDeleted == false && p.DiscountAmount > 0).Select(p => new ProductViewModel
+            List<ProductViewModel> products = await _userDbContext.Products.Where(p => p.IsDeleted == false && p.Discount > 0).Select(p => new ProductViewModel
             {
                 Id = p.Id,
                 Name = p.Name,

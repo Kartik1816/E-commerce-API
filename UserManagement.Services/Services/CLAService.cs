@@ -22,9 +22,9 @@ public class CLAService : ICLAService
     {
         return await _categoryRepository.GetAllCategoriesAsync();
     }
-    public async Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId)
+    public async Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId,int userId)
     {
-        return await _productRepository.GetProductsByCategoryAsync(categoryId);
+        return await _productRepository.GetProductsByCategoryAsync(categoryId,userId);
     }
     public async Task<IActionResult> SaveProduct(ProductViewModel productViewModel)
     {
