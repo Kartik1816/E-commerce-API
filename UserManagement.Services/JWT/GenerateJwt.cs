@@ -32,7 +32,7 @@ public class GenerateJwt : IGenerateJwt
             issuer: "http://localhost:5114",
             audience: "http://localhost:5114",
             claims: claims,
-            expires: DateTime.Now.AddMinutes(10),
+            expires: DateTime.Now.AddMinutes(30),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

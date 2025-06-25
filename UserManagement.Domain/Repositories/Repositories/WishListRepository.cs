@@ -20,8 +20,8 @@ public class WishListRepository : IWishListRepository
     {
         try
         {
-            if (wishListModel.UserId > 0 && wishListModel.UserId > 0)
-            {
+            if (wishListModel.UserId > 0 && wishListModel.ProductId > 0 && _userDbContext.Users.Any(u=>u.Id == wishListModel.UserId) && _userDbContext.Products.Any(p=>p.Id == wishListModel.ProductId))
+            { 
                 UserWishlist? userWishlist = await _userDbContext.UserWishlists.Where(uw => uw.ProductId == wishListModel.ProductId && uw.UserId == wishListModel.UserId).FirstOrDefaultAsync();
 
                 if (userWishlist == null)

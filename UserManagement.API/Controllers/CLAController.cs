@@ -8,6 +8,7 @@ namespace UserManagement.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+
 public class CLAController : ControllerBase
 {
     private readonly ICLAService _claService;

@@ -22,11 +22,13 @@ public class ProductViewModel
     public string? ImageUrl { get; set; }
     public int CategoryId { get; set; }
     public IFormFile? ProductImage { get; set; }
-    
+
     [Range(0, 100, ErrorMessage = "Discount percentage must be between 0 and 100.")]
     public decimal Discount { get; set; } = 0;
-    public decimal DiscountAmount{ get; set; }
+    public decimal DiscountAmount { get; set; }
     public int UserId { get; set; } = 0;
     public bool IsInWishList { get; set; }
     public bool IsInCart { get; set; }
+    public double Rating { get; set; } = 0;
+    public List<CommentModel>? CommentModels{ get; set; }
 }

@@ -51,6 +51,8 @@ public partial class User
 
     public virtual ICollection<Refreshtoken> Refreshtokens { get; set; } = new List<Refreshtoken>();
 
+    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+
     public virtual Role Role { get; set; } = null!;
 
     public virtual User? UpdatedByNavigation { get; set; }

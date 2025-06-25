@@ -39,11 +39,29 @@ public class AuthController : ControllerBase
             Role role = _authService.GetRoleById(roleId);
             string token = _generateJwt.GenerateJwtToken(user, role.Name);
             string refreshToken = _generateJwt.GenerateRefreshToken();
+            HttpContext.Response.Cookies.Append(
+                "token", 
+                token,
+                new CookieOptions
+                {
+                    Path="/",
+                    SameSite = SameSiteMode.Lax, 
+                    Expires = DateTimeOffset.UtcNow.AddDays(1)
+                });
+                HttpContext.Response.Cookies.Append(
+                "refreshToken", 
+                refreshToken,
+                new CookieOptions
+                {
+                    Path="/",
+                    SameSite = SameSiteMode.Lax, 
+                    Expires = DateTimeOffset.UtcNow.AddDays(1)
+                });
             Refreshtoken refreshTokenEntity = new Refreshtoken
             {
                 Token = refreshToken,
                 UserId = user.Id,
-                ExpireTime = DateTime.Now.AddMinutes(10)
+                ExpireTime = DateTime.Now.AddMinutes(30)
             };
             bool isTokenSaved = _authService.SaveToken(refreshTokenEntity);
             return new JsonResult(new { success = true, message = "Login successful", token = token, refreshToken = refreshToken });
@@ -73,9 +91,28 @@ public class AuthController : ControllerBase
 
         refreshtoken.Token = newRefreshToken;
 
-        refreshtoken.ExpireTime = DateTime.Now.AddMinutes(10);
+        refreshtoken.ExpireTime = DateTime.Now.AddMinutes(30);
 
         bool isTokenUpdated = _authService.SaveToken(refreshtoken);
+
+        HttpContext.Response.Cookies.Append(
+                "token", 
+                newJwtToken,
+                new CookieOptions
+                {
+                    Path="/",
+                    SameSite = SameSiteMode.Lax, 
+                    Expires = DateTimeOffset.UtcNow.AddDays(1)
+                });
+                HttpContext.Response.Cookies.Append(
+                "refreshToken", 
+                newRefreshToken,
+                new CookieOptions
+                {
+                    Path="/",
+                    SameSite = SameSiteMode.Lax, 
+                    Expires = DateTimeOffset.UtcNow.AddDays(1)
+                });
 
         if (!isTokenUpdated)
         {

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using UserManagement.Domain.DBContext;
 using UserManagement.Domain.Models;
@@ -47,10 +48,10 @@ public class OrderRepository : IOrderRepository
                         ProductId = pc.Id,
                         OrderId = order.Id,
                         Price = pc.Rate,
-                        Discount= pc.Discount,
+                        Discount = pc.Discount,
                         CategoryName = pc.Category.Name,
                         ProductName = pc.Name,
-                        Quantity = _userDbContext.ProductCarts.Where(pct=>pct.ProductId == pc.Id && pct.UserId == userId).Select(pct=>pct.Quantity).FirstOrDefault()
+                        Quantity = _userDbContext.ProductCarts.Where(pct => pct.ProductId == pc.Id && pct.UserId == userId).Select(pct => pct.Quantity).FirstOrDefault()
                     };
 
                     await _userDbContext.OrderProducts.AddAsync(orderProduct);
@@ -91,7 +92,7 @@ public class OrderRepository : IOrderRepository
                     foreach (ProductCart product in userCartItems)
                     {
                         _userDbContext.ProductCarts.Remove(product);
-                         _userDbContext.SaveChanges();
+                        _userDbContext.SaveChanges();
                     }
                 }
 
@@ -103,6 +104,74 @@ public class OrderRepository : IOrderRepository
                 transaction.RollbackAsync();
                 throw new Exception("An Exception occured while updating order" + e);
             }
+        }
+    }
+
+    public async Task<IActionResult> GetUsersOrder(int userId)
+    {
+        try
+        {
+            List<OrderDetailsViewModel>
+             orders = await _userDbContext.Orders
+                .Where(o => o.CreatedBy == userId)
+                .Select(o => new OrderDetailsViewModel
+                {
+                    OrderId = o.Id,
+                    Status = o.Status ?? string.Empty,
+                    TotalAmount = o.Amount ?? 0,
+                    UserId = o.CreatedBy,
+                    CreatedAt = o.CreatedAt,
+                    OrderProductViewModels = o.OrderProducts.Select(op => new OrderProductViewModel
+                    {
+                        ProductId = op.ProductId,
+                        ProductName = op.Product.Name,
+                        CategoryName = op.Product.Category.Name,
+                        Quantity = op.Quantity ?? 0,
+                        Price = op.Price ?? 0,
+                        Discount = op.Discount ?? 0,
+                        ImageUrl = op.Product.ImageUrl ?? string.Empty
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            UserOrders userOrders = new()
+            {
+                OrderDetailsViewModels = orders
+            };
+
+            return new JsonResult(new { success = true, data = userOrders });
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Internal server error: " + ex.Message);
+        }
+    }
+
+    public async Task<IActionResult> SaveCustomerReview(CustomerReviewModel customerReviewModel)
+    {
+        try
+        {
+            if (customerReviewModel.ProductId <= 0 || customerReviewModel.UserId <= 0)
+            {
+                return new JsonResult(new { success = true, message = "User or Product not found" });
+            }
+            Review review = new()
+            {
+                UserId = customerReviewModel.UserId,
+                ProductId = customerReviewModel.ProductId,
+                Rating = (short)customerReviewModel.Rating,
+                Comments = customerReviewModel.Comment,
+                CreatedAt = DateTime.Now
+            };
+
+            _userDbContext.Reviews.Add(review);
+            await _userDbContext.SaveChangesAsync();
+
+            return new JsonResult(new { success = true, message = "review added successfully" });
+        }
+        catch (Exception e)
+        {
+            throw new Exception("An exception occured while saving customer review" + e);
         }
     }
 }

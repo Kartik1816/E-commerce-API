@@ -79,7 +79,7 @@ public class ProductRepository : IProductRepository
                 if (product.Discount > 0)
                 {
                     productViewModel.Id = product.Id;
-                    return new JsonResult(new { success = true, message = "Product Added successfully", offer = true,data=productViewModel });
+                    return new JsonResult(new { success = true, message = "Product Added successfully", offer = true, data = productViewModel });
                 }
                 return new JsonResult(new { success = true, message = "Product Added successfully", offer = false });
 
@@ -91,11 +91,16 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId,int userId)
+    public async Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId)
     {
         try
         {
-            return await _userDbContext.Products.Where(p => p.CategoryId == categoryId && p.IsDeleted == false && p.CreatedBy == userId).Select(p => new ProductViewModel
+            int userRole = _userDbContext.Users.Where(u => u.Id == userId).Select(u => u.RoleId).FirstOrDefault();
+            
+
+            return await _userDbContext.Products.Where(p => p.CategoryId == categoryId && p.IsDeleted == false)
+            .Where(p => userRole == 1  ? p.CreatedBy == userId : true)
+            .Select(p => new ProductViewModel
             {
                 Id = p.Id,
                 Name = p.Name,
@@ -104,7 +109,7 @@ public class ProductRepository : IProductRepository
                 CategoryId = p.CategoryId,
                 ImageUrl = p.ImageUrl,
                 UserId = p.CreatedBy
-            }).OrderBy(p=>p.Id).ToListAsync();
+            }).OrderBy(p => p.Id).ToListAsync();
         }
         catch (Exception e)
         {
@@ -116,18 +121,21 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            ProductViewModel? product = await _userDbContext.Products.Where(p => p.Id == productId).Select(p => new ProductViewModel
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Description = p.Description ?? string.Empty,
-                Price = p.Rate,
-                CategoryId = p.CategoryId,
-                ImageUrl = p.ImageUrl,
-                Discount = (decimal)(p.Discount ?? 0),
-                DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0), 2),
-                UserId = p.CreatedBy
-            }).FirstOrDefaultAsync();
+            ProductViewModel? product = await _userDbContext.Products
+                .Where(p => p.Id == productId)
+                .Select(p => new ProductViewModel
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description ?? string.Empty,
+                    Price = p.Rate,
+                    CategoryId = p.CategoryId,
+                    ImageUrl = p.ImageUrl,
+                    Discount = (decimal)(p.Discount ?? 0),
+                    DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0), 2),
+                    UserId = p.CreatedBy
+                })
+                .FirstOrDefaultAsync();
 
             if (product == null)
             {
@@ -159,13 +167,13 @@ public class ProductRepository : IProductRepository
             List<ProductCart> userCartItems = _userDbContext.ProductCarts
                     .Where(pc => pc.ProductId == product.Id)
                     .ToList();
-            
+
             if (userCartItems.Count > 0)
             {
                 foreach (ProductCart productcart in userCartItems)
                 {
                     _userDbContext.ProductCarts.Remove(productcart);
-                        _userDbContext.SaveChanges();
+                    _userDbContext.SaveChanges();
                 }
             }
             return new JsonResult(new { success = true, message = "Product deleted successfully" });
@@ -179,19 +187,46 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            ProductViewModel? product = await _userDbContext.Products.Where(p => p.Id == productId).Select(p => new ProductViewModel
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Description = p.Description ?? string.Empty,
-                Price = p.Rate,
-                CategoryId = p.CategoryId,
-                ImageUrl = p.ImageUrl,
-                Discount = (decimal)(p.Discount ?? 0),
-                DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0),2),
-                IsInWishList = _userDbContext.UserWishlists.Where(uw => uw.UserId == userId && uw.ProductId == productId).Select(uw => uw.IsFavourite ?? false).FirstOrDefault(),
-                IsInCart = _userDbContext.ProductCarts.Where(uc => uc.UserId == userId && uc.ProductId == productId).Any()
-            }).FirstOrDefaultAsync();
+            ProductViewModel? product = await _userDbContext.Products
+                .Where(p => p.Id == productId)
+                .Select(p => new ProductViewModel
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description ?? string.Empty,
+                    Price = p.Rate,
+                    CategoryId = p.CategoryId,
+                    ImageUrl = p.ImageUrl,
+                    Discount = (decimal)(p.Discount ?? 0),
+                    DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0), 2),
+                    IsInWishList = _userDbContext.UserWishlists
+                        .Where(uw => uw.UserId == userId && uw.ProductId == productId)
+                        .Select(uw => uw.IsFavourite ?? false)
+                        .FirstOrDefault(),
+
+                    IsInCart = _userDbContext.ProductCarts
+                        .Where(uc => uc.UserId == userId && uc.ProductId == productId)
+                        .Any(),
+
+                    Rating = _userDbContext.Reviews
+                        .Where(r => r.ProductId == productId)
+                        .Average(r => (double?)r.Rating) != null 
+                        ? Math.Round(_userDbContext.Reviews
+                            .Where(r => r.ProductId == productId)
+                            .Average(r => r.Rating), 1)
+                        : 0, // Default rating when no reviews exist
+
+                    CommentModels = _userDbContext.Reviews
+                        .Where(r => r.ProductId == productId)
+                        .Select(r => new CommentModel
+                        {
+                            Comment = r.Comments ?? string.Empty,
+                            CreatedAt = r.CreatedAt,
+                            UserName = r.User != null ? r.User.FirstName : "Unknown",
+                            Rating = r.Rating
+                        }).OrderByDescending(r=>r.CreatedAt).ToList() ?? new List<CommentModel>()
+                })
+                .FirstOrDefaultAsync();
 
             if (product == null)
             {
@@ -244,11 +279,11 @@ public class ProductRepository : IProductRepository
                 CategoryId = p.CategoryId,
                 ImageUrl = p.ImageUrl,
                 Discount = (decimal)(p.Discount ?? 0),
-                DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0),2)
+                DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0), 2)
             }).ToListAsync();
 
             return new JsonResult(new { data = products });
-            
+
         }
         catch (Exception e)
         {
