@@ -108,7 +108,8 @@ public class ProductRepository : IProductRepository
                 Price = p.Rate,
                 CategoryId = p.CategoryId,
                 ImageUrl = p.ImageUrl,
-                UserId = p.CreatedBy
+                UserId = p.CreatedBy,
+                Discount=p.Discount ?? 0
             }).OrderBy(p => p.Id).ToListAsync();
         }
         catch (Exception e)

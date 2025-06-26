@@ -75,7 +75,8 @@ public class WishListRepository : IWishListRepository
                     Description = uw.Product.Description ?? string.Empty,
                     Price = uw.Product.Rate,
                     CategoryId = uw.Product.CategoryId,
-                    ImageUrl = uw.Product.ImageUrl
+                    ImageUrl = uw.Product.ImageUrl,
+                    Discount = uw.Product.Discount ?? 0
                 }).ToListAsync();
 
             return new JsonResult(new { success = true, data = userWishlistProducts });

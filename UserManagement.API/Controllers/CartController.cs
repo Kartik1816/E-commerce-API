@@ -17,6 +17,11 @@ public class CartController : ControllerBase
         _cartService = cartService;
     }
 
+    /// <summary>
+    /// Add Product to cart API
+    /// </summary>
+    /// <param name="cartModel"></param>
+    /// <returns></returns>
     [HttpPost("add")]
     public async Task<IActionResult> AddProductToCart([FromBody] CartModel cartModel)
     {
@@ -27,6 +32,12 @@ public class CartController : ControllerBase
         return await _cartService.AddProductToCart(cartModel);
     }
 
+
+    /// <summary>
+    /// Remove product from cart API
+    /// </summary>
+    /// <param name="cartModel"></param>
+    /// <returns></returns>
     [HttpPost("remove")]
     public async Task<IActionResult> RemoveProductFromCart([FromBody] CartModel cartModel)
     {
@@ -37,6 +48,12 @@ public class CartController : ControllerBase
         return await _cartService.RemoveProductFromCart(cartModel);
     }
 
+
+    /// <summary>
+    /// Getting product list of cart API
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
     [HttpGet("cartProducts/{userId}")]
     public async Task<IActionResult> GetCartProducts(int userId)
     {
@@ -47,6 +64,12 @@ public class CartController : ControllerBase
         return await _cartService.GetCartProducts(userId);
     }
 
+
+    /// <summary>
+    /// Increasing product quantity from cart
+    /// </summary>
+    /// <param name="cartModel"></param>
+    /// <returns></returns>
     [HttpPost("increase-quantity")]
     public async Task<IActionResult> IncreaseQuantity([FromBody] CartModel cartModel)
     {
@@ -58,6 +81,12 @@ public class CartController : ControllerBase
 
     }
 
+
+    /// <summary>
+    /// Decreasing product quantity from cart
+    /// </summary>
+    /// <param name="cartModel"></param>
+    /// <returns></returns>
     [HttpPost("decrease-quantity")]
     public async Task<IActionResult> DecreaseQuantity([FromBody] CartModel cartModel)
     {

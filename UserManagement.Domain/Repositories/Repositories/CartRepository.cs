@@ -70,8 +70,9 @@ public class CartRepository : ICartRepository
                     ProductId = pc.ProductId,
                     Quantity = pc.Quantity,
                     ProductName = _userDbContext.Products.Where(p => p.Id == pc.ProductId).Select(p => p.Name).FirstOrDefault() ?? "N/A",
-                    Price =Math.Round(_userDbContext.Products.Where(p => p.Id == pc.ProductId).Select(p => p.Rate).FirstOrDefault()
-                 - (_userDbContext.Products.Where(p => p.Id == pc.ProductId).Select(p => p.Rate).FirstOrDefault()*(_userDbContext.Products.Where(p => p.Id == pc.ProductId).Select(p => p.Discount).FirstOrDefault() ?? 0)/100),2)
+                    Price = pc.Product.Rate,
+                    ImageUrl = pc.Product.ImageUrl ?? string.Empty,
+                    Discount = pc.Product.Discount ?? 0
                 })
                 .ToListAsync();
 

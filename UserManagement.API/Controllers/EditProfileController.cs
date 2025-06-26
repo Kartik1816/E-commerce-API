@@ -10,10 +10,18 @@ namespace UserManagement.API.Controllers;
 public class EditProfileController : ControllerBase
 {
     private readonly IProfileService _profileService;
+
     public EditProfileController(IProfileService profileService)
     {
         _profileService = profileService;
     }
+
+
+    /// <summary>
+    /// Get User 
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
     [HttpGet("{userId}")]
     public async Task<IActionResult> GetUserProfile(int userId)
     {

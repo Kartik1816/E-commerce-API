@@ -13,6 +13,13 @@ public class ChangePasswordController : ControllerBase
     {
         _changePasswordService = changePasswordService;
     }
+
+    
+    /// <summary>
+    /// Chnage Password API with ChangePasswordViewModel
+    /// </summary>
+    /// <param name="changePasswordViewModel"></param>
+    /// <returns></returns>
     [HttpPost("updatepassword")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordViewModel changePasswordViewModel)
     {
