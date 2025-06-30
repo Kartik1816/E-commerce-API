@@ -19,20 +19,27 @@ public class CartRepository : ICartRepository
     {
         try
         {
-            ProductCart? productCart = await _userDbContext.ProductCarts.Where(pc => pc.UserId == cartModel.UserId && pc.ProductId == cartModel.ProductId).FirstOrDefaultAsync();
+            if (cartModel == null)
+            {
+                return new JsonResult(new { success = false, message = "Cart data is required" });
+            }
+            ProductCart? productCart = await _userDbContext.ProductCarts.FirstOrDefaultAsync(pc => pc.UserId == cartModel.UserId && pc.ProductId == cartModel.ProductId);
+
             if (productCart != null)
             {
-                return new JsonResult(new { success = false, message = "Product alredy exist in cart" });
+                return new JsonResult(new { success = false, message = "Product already exists in cart" });
             }
-            ProductCart newProductInCart = new()
+
+            // Create and add new cart item
+            _userDbContext.ProductCarts.Add(new ProductCart
             {
                 UserId = cartModel.UserId,
                 ProductId = cartModel.ProductId,
                 Quantity = cartModel.Quantity
-            };
-            _userDbContext.ProductCarts.Add(newProductInCart);
+            });
+
             await _userDbContext.SaveChangesAsync();
-            return new JsonResult(new { success = true, message = "Product successfully added into the cart" });
+            return new JsonResult(new { success = true, message = "Product successfully added to cart" });
         }
         catch (Exception e)
         {

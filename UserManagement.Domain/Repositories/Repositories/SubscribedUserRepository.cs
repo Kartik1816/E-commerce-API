@@ -22,17 +22,15 @@ public class SubscribedUserRepository : ISubscribedUserRepository
         try
         {
 
-            SubscribedUser? subscribedUser = await _userDbContext.SubscribedUsers.FirstOrDefaultAsync(su => su.Email == email);
-            if (subscribedUser == null)
+            bool alreadyExists = await _userDbContext.SubscribedUsers.AnyAsync(su => su.Email == email);
+
+            if (!alreadyExists)
             {
-                SubscribedUser newSubscribedUser = new()
-                {
-                    Email = email
-                };
-                _userDbContext.SubscribedUsers.Add(newSubscribedUser);
+                _userDbContext.SubscribedUsers.Add(new SubscribedUser { Email = email });
                 await _userDbContext.SaveChangesAsync();
             }
-            return new JsonResult(new { success = true, message = "User Subscribed successfully" });
+
+        return new JsonResult(new { success = true, message = "Subscription processed successfully" });
         }
         catch (Exception e)
         {

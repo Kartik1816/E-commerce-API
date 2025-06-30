@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Domain.DBContext;
 using UserManagement.Domain.Models;
@@ -15,79 +16,86 @@ public class ProductRepository : IProductRepository
     {
         _userDbContext = userDbContext;
     }
-
+    
     public async Task<IActionResult> SaveProductAsync(ProductViewModel productViewModel)
     {
+        if (productViewModel == null)
+        {
+            return new JsonResult(new { success = false, message = "Product Details Required" });
+        }
+
         try
         {
-            if (productViewModel == null)
-            {
-                return new JsonResult(new { success = false, message = "Product Details Required" });
-            }
+
+            IQueryable<Product> duplicateCheckQuery = _userDbContext.Products
+                .Where(p => p.Name == productViewModel.Name);
+                
             if (productViewModel.Id > 0)
             {
-                if (await _userDbContext.Products.AnyAsync(p => p.Name == productViewModel.Name && p.Id != productViewModel.Id))
-                {
-                    return new JsonResult(new { success = false, message = "Product with name already exist" });
-                }
-                Product? product = await _userDbContext.Products.FirstOrDefaultAsync(p => p.Id == productViewModel.Id);
-                if (product == null)
-                {
-                    return new JsonResult(new { success = false, message = "Product object not found" });
-                }
-                decimal OldDiscount = (decimal)(product.Discount ?? 0);
+                duplicateCheckQuery = duplicateCheckQuery.Where(p => p.Id != productViewModel.Id);
+            }
 
-                product.Name = productViewModel.Name;
-                product.Rate = productViewModel.Price;
-                product.Description = productViewModel.Description;
-                product.CategoryId = productViewModel.CategoryId;
-                product.UpdatedBy = productViewModel.UserId;
-                product.UpdatedAt = DateTime.Now;
-                product.Discount = productViewModel.Discount;
-                if (productViewModel.ImageUrl != null)
+            if (await duplicateCheckQuery.AnyAsync())
+            {
+                return new JsonResult(new { 
+                    success = false, 
+                    message = productViewModel.Id > 0 ? 
+                        "Product with name already exists" : 
+                        "Product already exists" 
+                });
+            }
+
+            Product product;
+            bool isNewProduct = productViewModel.Id <= 0;
+
+            if (isNewProduct)
+            {
+                product = new Product
                 {
-                    product.ImageUrl = productViewModel.ImageUrl;
-                }
-                _userDbContext.Products.Update(product);
-                await _userDbContext.SaveChangesAsync();
-                if (OldDiscount < product.Discount)
-                {
-                    productViewModel.ImageUrl = product.ImageUrl;
-                    return new JsonResult(new { success = true, message = "Product Updated successfully", offer = true, data = productViewModel });
-                }
-                return new JsonResult(new { success = true, message = "Product Updated successfully", offer = false });
+                    CreatedAt = DateTime.Now,
+                    CreatedBy = productViewModel.UserId
+                };
+                _userDbContext.Products.Add(product);
             }
             else
             {
-                if (await _userDbContext.Products.AnyAsync(p => p.Name == productViewModel.Name))
+                product = await _userDbContext.Products.FirstOrDefaultAsync(p => p.Id == productViewModel.Id);
+                if (product == null)
                 {
-                    return new JsonResult(new { success = false, messager = "Product Already exist" });
+                    return new JsonResult(new { success = false, message = "Product not found" });
                 }
-                Product product = new()
-                {
-                    Name = productViewModel.Name,
-                    Description = productViewModel.Description,
-                    CategoryId = productViewModel.CategoryId,
-                    Rate = productViewModel.Price,
-                    CreatedAt = DateTime.Now,
-                    CreatedBy = productViewModel.UserId,
-                    ImageUrl = productViewModel.ImageUrl,
-                    Discount = productViewModel.Discount
-                };
-                _userDbContext.Products.Add(product);
-                await _userDbContext.SaveChangesAsync();
-                if (product.Discount > 0)
-                {
-                    productViewModel.Id = product.Id;
-                    return new JsonResult(new { success = true, message = "Product Added successfully", offer = true, data = productViewModel });
-                }
-                return new JsonResult(new { success = true, message = "Product Added successfully", offer = false });
-
+                
+                product.UpdatedAt = DateTime.Now;
+                product.UpdatedBy = productViewModel.UserId;
             }
+
+   
+            product.Name = productViewModel.Name;
+            product.Rate = productViewModel.Price;
+            product.Description = productViewModel.Description;
+            product.CategoryId = productViewModel.CategoryId;
+            product.Discount = productViewModel.Discount;
+            
+            if (productViewModel.ImageUrl != null)
+            {
+                product.ImageUrl = productViewModel.ImageUrl;
+            }
+
+            await _userDbContext.SaveChangesAsync();
+
+            productViewModel.Id = product.Id;
+            productViewModel.ImageUrl = product.ImageUrl;
+
+            return new JsonResult(new { 
+                success = true, 
+                message = isNewProduct ? "Product added successfully" : "Product updated successfully",
+                offer = product.Discount > 0,
+                data = product.Discount > 0 ? productViewModel : null
+            });
         }
         catch (Exception ex)
         {
-            throw new Exception("An Exception occured while saving the product" + ex);
+           throw new Exception("An Exception occured while saving the product" + ex);
         }
     }
 
@@ -95,11 +103,11 @@ public class ProductRepository : IProductRepository
     {
         try
         {
-            int userRole = _userDbContext.Users.Where(u => u.Id == userId).Select(u => u.RoleId).FirstOrDefault();
-            
+            int userRole = _userDbContext.Users.FirstOrDefault(u => u.Id == userId)?.RoleId ?? 0;
 
-            return await _userDbContext.Products.Where(p => p.CategoryId == categoryId && p.IsDeleted == false)
-            .Where(p => userRole == 1  ? p.CreatedBy == userId : true)
+            return await _userDbContext.Products.Where(p => p.CategoryId == categoryId
+             && p.IsDeleted == false)
+            .Where(p=>userRole == 1 ? p.CreatedBy == userId : true)
             .Select(p => new ProductViewModel
             {
                 Id = p.Id,
@@ -109,8 +117,10 @@ public class ProductRepository : IProductRepository
                 CategoryId = p.CategoryId,
                 ImageUrl = p.ImageUrl,
                 UserId = p.CreatedBy,
-                Discount=p.Discount ?? 0
-            }).OrderBy(p => p.Id).ToListAsync();
+                Discount = p.Discount ?? 0
+            })
+            .OrderBy(p => p.Id)
+            .ToListAsync();
         }
         catch (Exception e)
         {
@@ -184,7 +194,7 @@ public class ProductRepository : IProductRepository
             throw new Exception("An exception occured while deleting the product " + e);
         }
     }
-    public async Task<IActionResult> GetProducGetProductDetailsWithWishListtDetails(int productId, int userId)
+    public async Task<IActionResult> GetProductDetailsWithWishListDetails(int productId, int userId)
     {
         try
         {

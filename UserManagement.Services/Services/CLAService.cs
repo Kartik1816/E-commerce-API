@@ -39,9 +39,9 @@ public class CLAService : ICLAService
         return await _productRepository.DeleteProduct(productId);
     }
 
-    public async Task<IActionResult> GetProducGetProductDetailsWithWishListtDetails(int productId, int userId)
+    public async Task<IActionResult> GetProductDetailsWithWishListDetails(int productId, int userId)
     {
-        return await _productRepository.GetProducGetProductDetailsWithWishListtDetails(productId, userId);
+        return await _productRepository.GetProductDetailsWithWishListDetails(productId, userId);
     }
 
     public async Task<IActionResult> SubscribeUser(string email)

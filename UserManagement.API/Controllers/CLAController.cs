@@ -101,7 +101,7 @@ public class CLAController : ControllerBase
         {
             return new JsonResult(new { success = false, message = "Invalid product or user ID" });
         }
-        return await _claService.GetProducGetProductDetailsWithWishListtDetails(productId, userId);
+        return await _claService.GetProductDetailsWithWishListDetails(productId, userId);
     }
 
 
