@@ -7,7 +7,7 @@ public interface ICLAService
 {
     public Task<List<CategoryViewModel>> GetAllCategoriesAsync();
 
-    public Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId,int userId);
+    public Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId);
 
     public Task<IActionResult> SaveProduct(ProductViewModel productViewModel);
 
@@ -24,4 +24,6 @@ public interface ICLAService
     public Task<SubscribedUsersModel> GetAllSubScribedUsers();
 
     public Task<IActionResult> GetOfferedProducts();
+    
+    public Task<List<ProductViewModel>> GetTopFiveOfferedProducts();
 }

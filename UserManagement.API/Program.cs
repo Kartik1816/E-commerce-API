@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using UserManagement.Domain.DBContext;
+using UserManagement.Domain.Hubs;
 using UserManagement.Domain.Repositories.Interfaces;
 using UserManagement.Domain.Repositories.Repositories;
 using UserManagement.Services.Interfaces;
@@ -25,6 +26,16 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
 });
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigins", builder =>
+    {
+        builder.WithOrigins("http://localhost:5214") // Allow requests from the MVC application
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
+});
+builder.Services.AddSignalR();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -82,11 +93,12 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API V1");
     });
 }
-
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers(); 
-
+app.MapControllers();
+app.MapHub<NotificationHub>("/notificationHub"); 
+app.UseCors("AllowSpecificOrigins");
 app.Run();
 

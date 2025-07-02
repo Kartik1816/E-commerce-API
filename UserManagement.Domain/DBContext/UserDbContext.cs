@@ -26,6 +26,8 @@ public partial class UserDbContext : DbContext
 
     public virtual DbSet<ProductCart> ProductCarts { get; set; }
 
+    public virtual DbSet<ProductImage> ProductImages { get; set; }
+
     public virtual DbSet<Refreshtoken> Refreshtokens { get; set; }
 
     public virtual DbSet<Review> Reviews { get; set; }
@@ -187,6 +189,24 @@ public partial class UserDbContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.ProductCarts)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("product_cart_user_id_fkey");
+        });
+
+        modelBuilder.Entity<ProductImage>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("product_images_pkey");
+
+            entity.ToTable("product_images");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ImageUrl)
+                .HasColumnType("character varying")
+                .HasColumnName("image_url");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+
+            entity.HasOne(d => d.Product).WithMany(p => p.ProductImages)
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("product_images_product_id_fkey");
         });
 
         modelBuilder.Entity<Refreshtoken>(entity =>

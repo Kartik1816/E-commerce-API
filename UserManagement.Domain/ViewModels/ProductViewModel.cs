@@ -30,5 +30,7 @@ public class ProductViewModel
     public bool IsInWishList { get; set; }
     public bool IsInCart { get; set; }
     public double Rating { get; set; } = 0;
-    public List<CommentModel>? CommentModels{ get; set; }
+    public List<CommentModel>? CommentModels { get; set; }
+    public List<IFormFile>? ProductImages { get; set; }
+    public List<string>? ImageUrls { get; set; }
 }

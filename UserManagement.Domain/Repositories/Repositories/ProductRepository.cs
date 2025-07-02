@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Domain.DBContext;
+using UserManagement.Domain.Hubs;
 using UserManagement.Domain.Models;
 using UserManagement.Domain.Repositories.Interfaces;
 using UserManagement.Domain.ViewModels;
@@ -12,11 +14,13 @@ public class ProductRepository : IProductRepository
 {
     private readonly UserDbContext _userDbContext;
 
-    public ProductRepository(UserDbContext userDbContext)
+    private readonly IHubContext<NotificationHub> _hubContext;
+    public ProductRepository(UserDbContext userDbContext, IHubContext<NotificationHub> hubContext)
     {
         _userDbContext = userDbContext;
+        _hubContext = hubContext;
     }
-    
+
     public async Task<IActionResult> SaveProductAsync(ProductViewModel productViewModel)
     {
         if (productViewModel == null)
@@ -29,7 +33,7 @@ public class ProductRepository : IProductRepository
 
             IQueryable<Product> duplicateCheckQuery = _userDbContext.Products
                 .Where(p => p.Name == productViewModel.Name);
-                
+
             if (productViewModel.Id > 0)
             {
                 duplicateCheckQuery = duplicateCheckQuery.Where(p => p.Id != productViewModel.Id);
@@ -37,11 +41,12 @@ public class ProductRepository : IProductRepository
 
             if (await duplicateCheckQuery.AnyAsync())
             {
-                return new JsonResult(new { 
-                    success = false, 
-                    message = productViewModel.Id > 0 ? 
-                        "Product with name already exists" : 
-                        "Product already exists" 
+                return new JsonResult(new
+                {
+                    success = false,
+                    message = productViewModel.Id > 0 ?
+                        "Product with name already exists" :
+                        "Product already exists"
                 });
             }
 
@@ -64,38 +69,57 @@ public class ProductRepository : IProductRepository
                 {
                     return new JsonResult(new { success = false, message = "Product not found" });
                 }
-                
+
                 product.UpdatedAt = DateTime.Now;
                 product.UpdatedBy = productViewModel.UserId;
             }
 
-   
+
             product.Name = productViewModel.Name;
             product.Rate = productViewModel.Price;
             product.Description = productViewModel.Description;
             product.CategoryId = productViewModel.CategoryId;
             product.Discount = productViewModel.Discount;
-            
-            if (productViewModel.ImageUrl != null)
+
+            if (productViewModel.ImageUrls != null)
             {
-                product.ImageUrl = productViewModel.ImageUrl;
+                product.ImageUrl = productViewModel.ImageUrls.FirstOrDefault();
+                foreach (string imageUrl in productViewModel.ImageUrls)
+                {
+                    ProductImage productImage = new ProductImage
+                    {
+                        ImageUrl = imageUrl,
+                        ProductId = product.Id
+                    };
+                    _userDbContext.ProductImages.Add(productImage);
+                }
             }
 
             await _userDbContext.SaveChangesAsync();
 
             productViewModel.Id = product.Id;
-            productViewModel.ImageUrl = product.ImageUrl;
+            productViewModel.ImageUrl = _userDbContext.ProductImages.FirstOrDefault(pi => pi.ProductId == product.Id)?.ImageUrl;
 
-            return new JsonResult(new { 
-                success = true, 
-                message = isNewProduct ? "Product added successfully" : "Product updated successfully",
-                offer = product.Discount > 0,
-                data = product.Discount > 0 ? productViewModel : null
-            });
+            if (product.Discount > 0)
+            {
+                await _hubContext.Clients.All.SendAsync("ReceiveDiscountNotification", new
+                {
+                    ProductName = product.Name,
+                    Discount = product.Discount
+                });
+            }
+            return new JsonResult(new
+                {
+                    success = true,
+                    message = isNewProduct ? "Product added successfully" : "Product updated successfully",
+                    offer = product.Discount > 0,
+                    data = product.Discount > 0 ? productViewModel : null
+                });
+            
         }
         catch (Exception ex)
         {
-           throw new Exception("An Exception occured while saving the product" + ex);
+            throw new Exception("An Exception occured while saving the product" + ex);
         }
     }
 
@@ -107,7 +131,7 @@ public class ProductRepository : IProductRepository
 
             return await _userDbContext.Products.Where(p => p.CategoryId == categoryId
              && p.IsDeleted == false)
-            .Where(p=>userRole == 1 ? p.CreatedBy == userId : true)
+            .Where(p => userRole == 1 ? p.CreatedBy == userId : true)
             .Select(p => new ProductViewModel
             {
                 Id = p.Id,
@@ -207,6 +231,10 @@ public class ProductRepository : IProductRepository
                     Description = p.Description ?? string.Empty,
                     Price = p.Rate,
                     CategoryId = p.CategoryId,
+                    ImageUrls = _userDbContext.ProductImages
+                        .Where(pi => pi.ProductId == p.Id)
+                        .Select(pi => pi.ImageUrl)
+                        .ToList(),
                     ImageUrl = p.ImageUrl,
                     Discount = (decimal)(p.Discount ?? 0),
                     DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0), 2),
@@ -221,7 +249,7 @@ public class ProductRepository : IProductRepository
 
                     Rating = _userDbContext.Reviews
                         .Where(r => r.ProductId == productId)
-                        .Average(r => (double?)r.Rating) != null 
+                        .Average(r => (double?)r.Rating) != null
                         ? Math.Round(_userDbContext.Reviews
                             .Where(r => r.ProductId == productId)
                             .Average(r => r.Rating), 1)
@@ -235,7 +263,7 @@ public class ProductRepository : IProductRepository
                             CreatedAt = r.CreatedAt,
                             UserName = r.User != null ? r.User.FirstName : "Unknown",
                             Rating = r.Rating
-                        }).OrderByDescending(r=>r.CreatedAt).ToList() ?? new List<CommentModel>()
+                        }).OrderByDescending(r => r.CreatedAt).ToList() ?? new List<CommentModel>()
                 })
                 .FirstOrDefaultAsync();
 
@@ -299,6 +327,37 @@ public class ProductRepository : IProductRepository
         catch (Exception e)
         {
             throw new Exception("An exception occured getting offered products" + e);
+        }
+    }
+
+    public async Task<List<ProductViewModel>> GetTopFiveOfferedProducts()
+    {
+        try
+        {
+            return await _userDbContext.Products
+                .Where(p => p.IsDeleted == false && p.Discount > 0)
+                .OrderByDescending(p => p.Discount)
+                .Take(5)
+                .Select(p => new ProductViewModel
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description ?? string.Empty,
+                    Price = p.Rate,
+                    CategoryId = p.CategoryId,
+                    ImageUrls = _userDbContext.ProductImages
+                        .Where(pi => pi.ProductId == p.Id)
+                        .Select(pi => pi.ImageUrl)
+                        .ToList(),
+                    ImageUrl = p.ImageUrl,
+                    Discount = (decimal)(p.Discount ?? 0),
+                    DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0), 2)
+                })
+                .ToListAsync();
+        }
+        catch (Exception e)
+        {
+            throw new Exception("An exception occured while getting top ten offered products" + e);
         }
     }
 }

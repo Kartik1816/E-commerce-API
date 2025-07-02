@@ -39,6 +39,8 @@ public partial class Product
 
     public virtual ICollection<ProductCart> ProductCarts { get; set; } = new List<ProductCart>();
 
+    public virtual ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
+
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
     public virtual User? UpdatedByNavigation { get; set; }

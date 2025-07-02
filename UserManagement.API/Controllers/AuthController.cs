@@ -128,13 +128,24 @@ public class AuthController : ControllerBase
 
     //Registration API
     [HttpPost("register")]
-    public async Task<IActionResult> Registration([FromBody] RegistrationViewModel registrationViewModel)
+    public async Task<IActionResult> Registration([FromForm] RegistrationViewModel registrationViewModel)
     {
         if (!ModelState.IsValid)
         {
             return new JsonResult(new { success = false, message = "Please Enter correct Data" });
         }
-        
+        if (registrationViewModel.Image != null)
+        {
+            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(registrationViewModel.Image.FileName);
+            string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/profile-images", fileName);
+
+            using (var fileStream = new FileStream(path, FileMode.Create))
+            {
+                registrationViewModel.Image.CopyTo(fileStream);
+            }
+
+            registrationViewModel.ImageUrl = fileName;
+        }
         return await _authService.RegisterUserAsync(registrationViewModel);
     }
     

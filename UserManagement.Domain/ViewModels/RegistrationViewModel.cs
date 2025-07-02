@@ -43,8 +43,8 @@ public class RegistrationViewModel
     [MinLength(3, ErrorMessage = "Address must be at least 3 characters long.")]
     public string Address { get; set; } = null!;
     public int RoleId { get; set; }
-    [Required(ErrorMessage = "Image URL is required.")]
-    public string ImageUrl { get; set; } = null!;
+
+    public string? ImageUrl { get; set; } = null!;
     public int Id { get; set; }
 
     public IFormFile? Image { get; set; }

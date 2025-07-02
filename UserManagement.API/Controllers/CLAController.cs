@@ -47,7 +47,7 @@ public class CLAController : ControllerBase
     [HttpGet("products")]
     public async Task<IActionResult> GetProductsByCategory([FromQuery] int categoryId, [FromQuery] int userId)
     {
-        List<ProductViewModel> products = await _claService.GetProductsByCategoryAsync(categoryId,userId);
+        List<ProductViewModel> products = await _claService.GetProductsByCategoryAsync(categoryId, userId);
         if (products == null)
         {
             return NotFound(new { success = false, message = "No products found for this category" });
@@ -173,5 +173,16 @@ public class CLAController : ControllerBase
     public async Task<IActionResult> GetOfferedProducts()
     {
         return await _claService.GetOfferedProducts();
+    }
+
+    [HttpGet("GetTopFiveOfferedProducts")]
+    public async Task<IActionResult> GetTopFiveOfferedProducts()
+    {
+        List<ProductViewModel> topTenOfferedProducts = await _claService.GetTopFiveOfferedProducts();
+        if (topTenOfferedProducts == null || !topTenOfferedProducts.Any())
+        {
+            return NotFound(new { success = false, message = "No offered products found" });
+        }
+        return Ok(new { success = true, data = topTenOfferedProducts });
     }
 }

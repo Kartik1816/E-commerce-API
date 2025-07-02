@@ -7,7 +7,7 @@ public interface IProductRepository
 {
     public Task<IActionResult> SaveProductAsync(ProductViewModel productViewModel);
 
-    public Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId,int userId);
+    public Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId);
 
     public Task<IActionResult> GetProductDetails(int productId);
 
@@ -18,4 +18,6 @@ public interface IProductRepository
     public Task<IActionResult> GetMinMaxDiscount();
 
     public Task<IActionResult> GetOfferedProducts();
+    
+    public Task<List<ProductViewModel>> GetTopFiveOfferedProducts();
 }

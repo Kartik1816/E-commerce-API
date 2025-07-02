@@ -22,9 +22,9 @@ public class CLAService : ICLAService
     {
         return await _categoryRepository.GetAllCategoriesAsync();
     }
-    public async Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId,int userId)
+    public async Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId)
     {
-        return await _productRepository.GetProductsByCategoryAsync(categoryId,userId);
+        return await _productRepository.GetProductsByCategoryAsync(categoryId, userId);
     }
     public async Task<IActionResult> SaveProduct(ProductViewModel productViewModel)
     {
@@ -62,5 +62,10 @@ public class CLAService : ICLAService
     public async Task<IActionResult> GetOfferedProducts()
     {
         return await _productRepository.GetOfferedProducts();
+    }
+
+    public Task<List<ProductViewModel>> GetTopFiveOfferedProducts()
+    {
+        return _productRepository.GetTopFiveOfferedProducts();
     }
 }
