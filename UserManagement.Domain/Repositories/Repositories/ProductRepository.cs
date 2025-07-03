@@ -81,7 +81,9 @@ public class ProductRepository : IProductRepository
             product.CategoryId = productViewModel.CategoryId;
             product.Discount = productViewModel.Discount;
 
-            if (productViewModel.ImageUrls != null)
+            await _userDbContext.SaveChangesAsync();
+
+            if (productViewModel.ImageUrls != null && productViewModel.ImageUrls.Count > 0)
             {
                 product.ImageUrl = productViewModel.ImageUrls.FirstOrDefault();
                 foreach (string imageUrl in productViewModel.ImageUrls)

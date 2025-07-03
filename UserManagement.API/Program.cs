@@ -32,7 +32,8 @@ builder.Services.AddCors(options =>
     {
         builder.WithOrigins("http://localhost:5214") // Allow requests from the MVC application
                .AllowAnyHeader()
-               .AllowAnyMethod();
+               .AllowAnyMethod()
+               .AllowCredentials();
     });
 });
 builder.Services.AddSignalR();
