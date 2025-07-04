@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using UserManagement.API.Common;
 using UserManagement.Domain.DBContext;
 using UserManagement.Domain.Hubs;
 using UserManagement.Domain.Repositories.Interfaces;
@@ -55,6 +56,8 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ISubscribedUserRepository, SubscribedUserRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IValidationService, ValidationService>();
+builder.Services.AddSingleton<ResponseHandler>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
     .AddJwtBearer(options =>
