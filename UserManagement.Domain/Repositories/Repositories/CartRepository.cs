@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using UserManagement.Domain.DBContext;
 using UserManagement.Domain.Models;
 using UserManagement.Domain.Repositories.Interfaces;
+using UserManagement.Domain.utils;
 using UserManagement.Domain.ViewModels;
 
 namespace UserManagement.Domain.Repositories.Repositories;
@@ -11,9 +12,11 @@ public class CartRepository : ICartRepository
 {
     private readonly UserDbContext _userDbContext;
 
-    public CartRepository(UserDbContext userDbContext)
+    private readonly ResponseHandler _responseHandler;
+    public CartRepository(UserDbContext userDbContext, ResponseHandler responseHandler)
     {
         _userDbContext = userDbContext;
+        _responseHandler = responseHandler;
     }
     public async Task<IActionResult> AddProductToCart(CartModel cartModel)
     {
@@ -21,13 +24,18 @@ public class CartRepository : ICartRepository
         {
             if (cartModel == null)
             {
-                return new JsonResult(new { success = false, message = "Cart data is required" });
+                return new  BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.NullModel, null));
             }
             ProductCart? productCart = await _userDbContext.ProductCarts.FirstOrDefaultAsync(pc => pc.UserId == cartModel.UserId && pc.ProductId == cartModel.ProductId);
 
             if (productCart != null)
             {
-                return new JsonResult(new { success = false, message = "Product already exists in cart" });
+                return new OkObjectResult(new ResponseModel
+                {
+                    IsSuccess = false,
+                    Message = CustomErrorMessage.CartProductAlreadyExists,
+                    Data = null
+                });
             }
 
             // Create and add new cart item
@@ -39,11 +47,11 @@ public class CartRepository : ICartRepository
             });
 
             await _userDbContext.SaveChangesAsync();
-            return new JsonResult(new { success = true, message = "Product successfully added to cart" });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.AddProductToCartSuccess, null));
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occured while adding product to cart" + e);
+            throw new Exception(CustomErrorMessage.AddProductToCartError + e);
         }
     }
 
@@ -54,15 +62,15 @@ public class CartRepository : ICartRepository
             ProductCart? productCart = await _userDbContext.ProductCarts.Where(pc => pc.UserId == cartModel.UserId && pc.ProductId == cartModel.ProductId).FirstOrDefaultAsync();
             if (productCart == null)
             {
-                return new JsonResult(new { success = false, message = "Product is not in the cart" });
+                return new  BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.ProductIsNotInCart, null));
             }
             _userDbContext.ProductCarts.Remove(productCart);
             await _userDbContext.SaveChangesAsync();
-            return new JsonResult(new { success = true, message = "Product removed from cart successfully" });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.RemoveProductFromCartSuccess, null));
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occured while adding product to cart" + e);
+            throw new Exception(CustomErrorMessage.RemoveProductFromCartError + e);
         }
     }
 
@@ -83,11 +91,11 @@ public class CartRepository : ICartRepository
                 })
                 .ToListAsync();
 
-            return new JsonResult(new { success = true, data = cartProducts });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.CartProductSuccess, cartProducts));
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occured while fetching products" + e);
+            throw new Exception(CustomErrorMessage.CartProductError + e);
         }
     }
 
@@ -114,16 +122,16 @@ public class CartRepository : ICartRepository
             ProductCart? productCart = await _userDbContext.ProductCarts.Where(pc => pc.UserId == cartModel.UserId && pc.ProductId == cartModel.ProductId).FirstOrDefaultAsync();
             if (productCart == null)
             {
-                return new JsonResult(new { success = false, message = "Product is not in the cart" });
+               return new  BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.ProductIsNotInCart, null));
             }
             productCart.Quantity = productCart.Quantity + 1;
             _userDbContext.ProductCarts.Update(productCart);
             await _userDbContext.SaveChangesAsync();
-            return new JsonResult(new { success = true, message = "Quantity increased successfully" });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.IncreaseQuantitySuccess, null));
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occured while increasing product quantity to cart" + e);
+            throw new Exception(CustomErrorMessage.IncreaseQuantityError + e);
         }
     }
     public async Task<IActionResult> DecreaseQuantity(CartModel cartModel)
@@ -133,20 +141,20 @@ public class CartRepository : ICartRepository
             ProductCart? productCart = await _userDbContext.ProductCarts.Where(pc => pc.UserId == cartModel.UserId && pc.ProductId == cartModel.ProductId).FirstOrDefaultAsync();
             if (productCart == null)
             {
-                return new JsonResult(new { success = false, message = "Product is not in the cart" });
+                return new  BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.ProductIsNotInCart, null));
             }
             if (productCart.Quantity == 1)
             {
-                return new JsonResult(new { success = false, message = "Quantity can not be 0" });
+                return new  BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.QuantityCannotBeZero, null));
             }
             productCart.Quantity = productCart.Quantity - 1;
             _userDbContext.ProductCarts.Update(productCart);
             await _userDbContext.SaveChangesAsync();
-            return new JsonResult(new { success = true, message = "Quantity decreased successfully" });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.DecreaseQuantitySuccess, null));
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occured while increasing product quantity to cart" + e);
+            throw new Exception(CustomErrorMessage.DecreaseQuantityError + e);
         }
     }
 }

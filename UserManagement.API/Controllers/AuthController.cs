@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using UserManagement.API.Common;
 using UserManagement.Domain.Models;
 using UserManagement.Domain.utils;
 using UserManagement.Domain.ViewModels;
@@ -76,7 +75,13 @@ public class AuthController : ControllerBase
         }
         else
         {
-            return new JsonResult(new { success = false, message = "Incorrect Password" });
+            return Ok(new ResponseModel
+            {   
+                IsSuccess = false,
+                StatusCode = 401,
+                Message = CustomErrorMessage.IncorrectCredentials,
+                ErrorCode = CustomErrorCode.IncorrectCredentials
+            });
         }
     }
 
@@ -138,9 +143,10 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Registration([FromForm] RegistrationViewModel registrationViewModel)
     {
-        if (!ModelState.IsValid)
+        List<ValidationError> errors = _validationService.ValidateRegistrationModel(registrationViewModel);
+        if (errors.Any())
         {
-            return new JsonResult(new { success = false, message = "Please Enter correct Data" });
+            return BadRequest(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.InvalidRegistrationModel, errors));
         }
         if (registrationViewModel.Image != null)
         {

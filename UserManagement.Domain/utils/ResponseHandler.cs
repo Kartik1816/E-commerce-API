@@ -1,6 +1,7 @@
+using Microsoft.AspNetCore.Http;
 using UserManagement.Domain.ViewModels;
 
-namespace UserManagement.API.Common;
+namespace UserManagement.Domain.utils;
 
 public class ResponseHandler
 {

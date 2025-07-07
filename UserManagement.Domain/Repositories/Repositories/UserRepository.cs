@@ -1,7 +1,10 @@
+using System.Globalization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.Domain.DBContext;
 using UserManagement.Domain.Models;
 using UserManagement.Domain.Repositories.Interfaces;
+using UserManagement.Domain.utils;
 using UserManagement.Domain.ViewModels;
 
 namespace UserManagement.Domain.Repositories.Repositories;
@@ -9,10 +12,11 @@ namespace UserManagement.Domain.Repositories.Repositories;
 public class UserRepository : IUserRepository
 {
     private readonly UserDbContext _userDbContext;
-    
-    public UserRepository(UserDbContext userDbContext)
+    private readonly ResponseHandler _responseHandler;
+    public UserRepository(UserDbContext userDbContext, ResponseHandler responseHandler)
     {
         _userDbContext = userDbContext;
+        _responseHandler = responseHandler;
     }
 
     public User GetvalidUser(AuthViewModel authViewModel)
@@ -53,11 +57,17 @@ public class UserRepository : IUserRepository
         {
             if (registrationViewModel == null)
             {
-                return new BadRequestObjectResult(new { success = false, message = "Invalid registration data" });
+                return new BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.InvalidRegistrationModel, null));
             }
             if (_userDbContext.Users.Any(u => u.Email == registrationViewModel.Email))
             {
-                return new JsonResult(new { success = false, message = "User already exists" });
+               return new OkObjectResult(new ResponseModel{
+                   IsSuccess = false,
+                   Message = CustomErrorMessage.EmailAlreadyExists,
+                   Data = null,
+                   ErrorCode= CustomErrorCode.EmailAlreadyExists,
+                   StatusCode = StatusCodes.Status400BadRequest
+               });
             }
             User user = new User
             {
@@ -76,13 +86,13 @@ public class UserRepository : IUserRepository
             await _userDbContext.SaveChangesAsync();
             if (user.Id <= 0)
             {
-                return new BadRequestObjectResult(new { success = false, message = "User registration failed" });
+                return new BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.RegistrationError, null));
             }
-            return new OkObjectResult(new { success = true, message = "User registered successfully" });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.RegistrationSuccess, new { userId = user.Id }));
         }
         catch (Exception)
         {
-            throw new Exception("An Exception occured while registering user");
+            throw new Exception(CustomErrorMessage.RegistrationError);
         }
     }
 
@@ -110,7 +120,7 @@ public class UserRepository : IUserRepository
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occured while fetching user profile" + e);
+            throw new Exception(CustomErrorMessage.GetUserProfileError + e);
         }
     }
 
@@ -121,7 +131,7 @@ public class UserRepository : IUserRepository
             User? user = await _userDbContext.Users.FindAsync(editProfileViewModel.Id);
             if (user == null)
             {
-                return new NotFoundObjectResult(new { success = false, message = "User not found" });
+               return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.UserNotFound, CustomErrorMessage.UserNotFound, null));
             }
             user.FirstName = editProfileViewModel.FirstName;
             user.LastName = editProfileViewModel.LastName;
@@ -135,11 +145,11 @@ public class UserRepository : IUserRepository
             }
             _userDbContext.Users.Update(user);
             await _userDbContext.SaveChangesAsync();
-            return new JsonResult(new { success = true, message = "Profile updated successfully" });
+           return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.UpdateUserProfileSuccess, null));
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occured while saving profile" + e);
+            throw new Exception(CustomErrorMessage.UpdateUserProfileError + e);
         }
     }
 
@@ -150,17 +160,18 @@ public class UserRepository : IUserRepository
             User? user = _userDbContext.Users.FirstOrDefault(u => u.Email == email.ToLower());
             if (user == null)
             {
-                return new NotFoundObjectResult(new { success = false, message = "User not found" });
+                return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.UserNotFound, CustomErrorMessage.UserNotFound, null));
             }
             user.Otp = otp;
             user.OtpExpireTime = DateTime.Now.AddHours(1);
             _userDbContext.Users.Update(user);
             _userDbContext.SaveChanges();
-            return new JsonResult(new { success = true, message = "OTP Sent successfully", otp = otp });
+
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.OTPSentSuccess, otp.ToString()));
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occured while saving OTP" + e);
+            throw new Exception(CustomErrorMessage.OTPSentError + e);
         }
     }
 
@@ -171,21 +182,28 @@ public class UserRepository : IUserRepository
             User? user = _userDbContext.Users.FirstOrDefault(u => u.Email == otpViewModel.Email);
             if (user == null)
             {
-                return new NotFoundObjectResult(new { success = false, message = "User not found" });
+                return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.UserNotFound, CustomErrorMessage.UserNotFound, null));
             }
             if (user.Otp != otpViewModel.OTP || user.OtpExpireTime < DateTime.Now)
             {
-                return new BadRequestObjectResult(new { success = false, message = "Invalid or expired OTP" });
+                return new BadRequestObjectResult(new ResponseModel
+                {
+                    IsSuccess = false,
+                    Message = CustomErrorMessage.OTPInvalid,
+                    Data = null,
+                    ErrorCode = CustomErrorCode.OTPInvalid,
+                    StatusCode = StatusCodes.Status400BadRequest
+                });
             }
             user.Otp = null;
             user.OtpExpireTime = null;
             _userDbContext.Users.Update(user);
             _userDbContext.SaveChanges();
-            return new JsonResult(new { success = true, message = "OTP verified successfully" });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.OTPVerifySuccess, null));
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occured while verifying OTP" + e);
+            throw new Exception(CustomErrorMessage.OTPVerifyError + e);
         }
     }
 
@@ -196,18 +214,18 @@ public class UserRepository : IUserRepository
             User? user = _userDbContext.Users.FirstOrDefault(u => u.Email == resetPasswordViewModel.Email);
             if (user == null)
             {
-                return new NotFoundObjectResult(new { success = false, message = "User not found" });
+                return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.UserNotFound, CustomErrorMessage.UserNotFound, null));
             }
             user.Password = resetPasswordViewModel.NewPassword;
             user.Otp = null;
             user.OtpExpireTime = null;
             _userDbContext.Users.Update(user);
             _userDbContext.SaveChanges();
-            return new JsonResult(new { success = true, message = "Password reset successfully" });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.PasswordResetSuccess, null)); 
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occured while resetting password" + e);
+            throw new Exception(CustomErrorMessage.PasswordResetError + e);
         }
     }
 
@@ -218,24 +236,24 @@ public class UserRepository : IUserRepository
             User? user = await _userDbContext.Users.FindAsync(changePasswordViewModel.Id);
             if (user == null)
             {
-                return new NotFoundObjectResult(new { success = false, message = "User not found" });
+                return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.UserNotFound, CustomErrorMessage.UserNotFound, null));
             }
             if (user.Password != changePasswordViewModel.OldPassword)
             {
-                return new JsonResult(new { success = false, message = "Old password is incorrect" });
+                return new BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.IncorrectOldPassword, null));
             }
             if (changePasswordViewModel.NewPassword != changePasswordViewModel.ConfirmPassword)
             {
-                return new JsonResult(new { success = false, message = "New password and confirm password do not match" });
+                return new BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.NewAndConfirmPasswordMismatch, null));
             }
             user.Password = changePasswordViewModel.NewPassword;
             _userDbContext.Users.Update(user);
             await _userDbContext.SaveChangesAsync();
-            return new JsonResult(new { success = true, message = "Password changed successfully" });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.ChangePasswordSuccess, null));
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occured while changing password" + e);
+            throw new Exception(CustomErrorMessage.ChangePasswordError + e);
         }
     }
 }

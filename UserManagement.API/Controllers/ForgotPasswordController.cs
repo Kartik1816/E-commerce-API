@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using UserManagement.Domain.utils;
 using UserManagement.Domain.ViewModels;
 using UserManagement.Services.Helper;
 using UserManagement.Services.Interfaces;
@@ -11,17 +12,22 @@ namespace UserManagement.API.Controllers;
 public class ForgotPasswordController : ControllerBase
 {
     private readonly IForgotPasswordService _forgotPasswordService;
-    public ForgotPasswordController(IForgotPasswordService forgotPasswordService)
+    private readonly IValidationService _validationService;
+    private readonly ResponseHandler _responseHandler;
+    public ForgotPasswordController(IForgotPasswordService forgotPasswordService,IValidationService validationService, ResponseHandler responseHandler)
     {
+        _validationService = validationService;
+        _responseHandler = responseHandler;
         _forgotPasswordService = forgotPasswordService;
     }
+
     [HttpPost("forgotpassword")]
     public IActionResult ForgotPassword([FromBody] string Email)
     {
         bool IsUserWithEmailPresent = _forgotPasswordService.IsUserWithEmailPresent(Email);
         if (!IsUserWithEmailPresent)
         {
-            return new JsonResult(new { success = false, message = "Email is not registered" });
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.UserNotRegistered, CustomErrorMessage.UserNotRegistered, null));
         }
         int OTP = HelperService.GenerateSixDigitOTP();
         return _forgotPasswordService.SaveOTP(OTP, Email);
@@ -29,18 +35,20 @@ public class ForgotPasswordController : ControllerBase
     [HttpPost("verify")]
     public IActionResult VerifyOTP([FromBody] OtpViewModel otpViewModel)
     {
-        if (!ModelState.IsValid)
+        List<ValidationError> errors = _validationService.ValidateOtpModel(otpViewModel);
+        if (errors.Any())
         {
-            return new JsonResult(new { success = false, message = "Please Enter correct Data" });
+            return BadRequest(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.InvalidOtpModel, errors));
         }
         return _forgotPasswordService.VerifyOTP(otpViewModel);
     }
     [HttpPost("resetpassword")]
     public IActionResult ResetPassword([FromBody] ResetPasswordViewModel resetPasswordViewModel)
     {
-        if (!ModelState.IsValid)
+        List<ValidationError> errors = _validationService.ValidateResetPasswordModel(resetPasswordViewModel);
+        if (errors.Any())
         {
-            return new JsonResult(new { success = false, message = "Please Enter correct Data" });
+            return BadRequest(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.InvalidResetPasswordModel, errors));
         }
         return _forgotPasswordService.ResetPassword(resetPasswordViewModel);
     }

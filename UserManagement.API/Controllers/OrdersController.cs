@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UserManagement.Domain.utils;
 using UserManagement.Domain.ViewModels;
 using UserManagement.Services.Interfaces;
 
@@ -11,9 +12,11 @@ public class OrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
 
-    public OrdersController(IOrderService orderService)
+    private readonly ResponseHandler _responseHandler;
+    public OrdersController(IOrderService orderService, ResponseHandler responseHandler)
     {
         _orderService = orderService;
+        _responseHandler = responseHandler;
     }
 
     [HttpGet("get-user-orders/{userId}")]
@@ -27,7 +30,7 @@ public class OrdersController : ControllerBase
     {
         if (customerReviewModel.ProductId <= 0 || customerReviewModel.UserId <= 0)
         {
-            return new JsonResult(new { success = false, message = "Invalid User Or Product" });
+           return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.ProductUserNotFound, CustomErrorMessage.ProductUserNotFound, null));
         }
         return await _orderService.SaveCustomerReview(customerReviewModel);
     }

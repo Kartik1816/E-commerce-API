@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UserManagement.Domain.utils;
 using UserManagement.Domain.ViewModels;
 using UserManagement.Services.Interfaces;
 
@@ -10,10 +11,12 @@ namespace UserManagement.API.Controllers;
 public class WishListController : ControllerBase
 {
     private readonly IWishListService _wishListService;
+    private readonly ResponseHandler _responseHandler;
 
-    public WishListController(IWishListService wishListService)
+    public WishListController(IWishListService wishListService, ResponseHandler responseHandler)
     {
         _wishListService = wishListService;
+        _responseHandler = responseHandler;
     }
 
     [HttpPost("addRemoveToFromWishList")]
@@ -26,7 +29,7 @@ public class WishListController : ControllerBase
     {
         if (userId <= 0)
         {
-            return new JsonResult(new { success = false, message = "Uset Not Found" });
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.UserNotFound, CustomErrorMessage.UserNotFound, null));
         }
         
         return await _wishListService.GetUserWishListProducts(userId);

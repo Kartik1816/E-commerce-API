@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UserManagement.Domain.utils;
 using UserManagement.Domain.ViewModels;
 using UserManagement.Services.Interfaces;
 
@@ -11,10 +12,12 @@ namespace UserManagement.API.Controllers;
 public class CartController : ControllerBase
 {
     private readonly ICartService _cartService;
+    private readonly ResponseHandler _responseHandler;
 
-    public CartController(ICartService cartService)
+    public CartController(ICartService cartService, ResponseHandler responseHandler)
     {
         _cartService = cartService;
+        _responseHandler = responseHandler;
     }
 
     /// <summary>
@@ -27,7 +30,7 @@ public class CartController : ControllerBase
     {
         if (cartModel.ProductId <= 0 || cartModel.UserId <= 0)
         {
-            return new JsonResult(new { success = false, message = "Product or User not found" });
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.ProductUserNotFound, CustomErrorMessage.ProductUserNotFound, null));
         }
         return await _cartService.AddProductToCart(cartModel);
     }
@@ -43,7 +46,7 @@ public class CartController : ControllerBase
     {
         if (cartModel.ProductId <= 0 || cartModel.UserId <= 0)
         {
-            return new JsonResult(new { success = false, message = "Product or User not found" });
+             return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.ProductUserNotFound, CustomErrorMessage.ProductUserNotFound, null));
         }
         return await _cartService.RemoveProductFromCart(cartModel);
     }
@@ -59,7 +62,7 @@ public class CartController : ControllerBase
     {
         if (userId <= 0)
         {
-            return new JsonResult(new { success = false, message = "User Not Found" });
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.UserNotFound, CustomErrorMessage.UserNotFound, null));
         }
         return await _cartService.GetCartProducts(userId);
     }
@@ -75,7 +78,7 @@ public class CartController : ControllerBase
     {
         if (cartModel.ProductId <= 0 || cartModel.UserId <= 0)
         {
-            return new JsonResult(new { success = false, message = "Product or User not found" });
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.ProductUserNotFound, CustomErrorMessage.ProductUserNotFound, null));
         }
         return await _cartService.IncreaseQuantity(cartModel);
 
@@ -92,7 +95,7 @@ public class CartController : ControllerBase
     {
         if (cartModel.ProductId <= 0 || cartModel.UserId <= 0)
         {
-            return new JsonResult(new { success = false, message = "Product or User not found" });
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.ProductUserNotFound, CustomErrorMessage.ProductUserNotFound, null));
         }
         return await _cartService.DecreaseQuantity(cartModel);
 

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using UserManagement.Domain.DBContext;
 using UserManagement.Domain.Models;
 using UserManagement.Domain.Repositories.Interfaces;
+using UserManagement.Domain.utils;
 using UserManagement.Domain.ViewModels;
 
 namespace UserManagement.Domain.Repositories.Repositories;
@@ -10,10 +11,12 @@ namespace UserManagement.Domain.Repositories.Repositories;
 public class WishListRepository : IWishListRepository
 {
     private readonly UserDbContext _userDbContext;
+    private readonly ResponseHandler _responseHandler;
 
-    public WishListRepository(UserDbContext userDbContext)
+    public WishListRepository(UserDbContext userDbContext, ResponseHandler responseHandler)
     {
         _userDbContext = userDbContext;
+        _responseHandler = responseHandler;
     }
 
     public async Task<IActionResult> AddRemoveProductToFromWishList(WishListModel wishListModel)
@@ -35,7 +38,7 @@ public class WishListRepository : IWishListRepository
 
                     _userDbContext.UserWishlists.Add(newUserWishList);
                     await _userDbContext.SaveChangesAsync();
-                    return new JsonResult(new { success = true, message = "Product Added to Users WishList" });
+                    return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.AddProductToWishListSuccess, null));
                 }
                 else
                 {
@@ -45,20 +48,20 @@ public class WishListRepository : IWishListRepository
 
                     if (userWishlist.IsFavourite.HasValue && userWishlist.IsFavourite.Value)
                     {
-                        return new JsonResult(new { success = true, message = "Product Added to Users WishList" });
+                        return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.AddProductToWishListSuccess, null));
                     }
 
-                    return new JsonResult(new { success = true, message = "Product Removed from Users WishList" });
+                    return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.RemoveProductFromWishListSuccess, null));
                 }
             }
             else
             {
-                return new JsonResult(new { success = false, message = "Product or User not found" });
+                return new BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.ProductUserNotFound, CustomErrorMessage.ProductUserNotFound, null));
             }
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occured while updating user wishlist" + e);
+            throw new Exception(CustomErrorMessage.SaveUserWishListError + e);
         }
     }
 
@@ -79,11 +82,11 @@ public class WishListRepository : IWishListRepository
                     Discount = uw.Product.Discount ?? 0
                 }).ToListAsync();
 
-            return new JsonResult(new { success = true, data = userWishlistProducts });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.GetUserWishListProductsSuccess, userWishlistProducts));
         }
         catch (Exception e)
         {
-            throw new Exception("An exception occured while getting user wishlist products" + e);
+            throw new Exception(CustomErrorMessage.GetUserWishListProductsError + e);
         }
     }
 }

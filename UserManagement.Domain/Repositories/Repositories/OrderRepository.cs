@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using UserManagement.Domain.DBContext;
 using UserManagement.Domain.Models;
 using UserManagement.Domain.Repositories.Interfaces;
+using UserManagement.Domain.utils;
 using UserManagement.Domain.ViewModels;
 
 namespace UserManagement.Domain.Repositories.Repositories;
@@ -14,10 +15,13 @@ public class OrderRepository : IOrderRepository
 
     private readonly ICartRepository _cartRepository;
 
-    public OrderRepository(UserDbContext userDbContext, ICartRepository cartRepository)
+    private readonly ResponseHandler _responseHandler;
+
+    public OrderRepository(UserDbContext userDbContext, ICartRepository cartRepository, ResponseHandler responseHandler)
     {
         _userDbContext = userDbContext;
         _cartRepository = cartRepository;
+        _responseHandler = responseHandler;
     }
     public async Task<int> CreateNewOrder(int userId, decimal amount)
     {
@@ -138,12 +142,12 @@ public class OrderRepository : IOrderRepository
             {
                 OrderDetailsViewModels = orders
             };
-
-            return new JsonResult(new { success = true, data = userOrders });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.GetUserOrdersSuccess, userOrders));
+            
         }
         catch (Exception ex)
         {
-            throw new Exception("Internal server error: " + ex.Message);
+            throw new Exception(CustomErrorMessage.GetUserOrdersError + ex.Message);
         }
     }
 
@@ -153,7 +157,7 @@ public class OrderRepository : IOrderRepository
         {
             if (customerReviewModel.ProductId <= 0 || customerReviewModel.UserId <= 0)
             {
-                return new JsonResult(new { success = true, message = "User or Product not found" });
+                return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.ProductUserNotFound, CustomErrorMessage.ProductUserNotFound, null));
             }
             Review review = new()
             {
@@ -167,11 +171,11 @@ public class OrderRepository : IOrderRepository
             _userDbContext.Reviews.Add(review);
             await _userDbContext.SaveChangesAsync();
 
-            return new JsonResult(new { success = true, message = "review added successfully" });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.SaveCustomerReviewSuccess, null));
         }
         catch (Exception e)
         {
-            throw new Exception("An exception occured while saving customer review" + e);
+            throw new Exception(CustomErrorMessage.SaveCustomerReviewError + e);
         }
     }
 }

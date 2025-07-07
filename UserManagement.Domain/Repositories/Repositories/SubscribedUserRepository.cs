@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using UserManagement.Domain.DBContext;
 using UserManagement.Domain.Models;
 using UserManagement.Domain.Repositories.Interfaces;
+using UserManagement.Domain.utils;
 using UserManagement.Domain.ViewModels;
 
 namespace UserManagement.Domain.Repositories.Repositories;
@@ -11,10 +12,11 @@ namespace UserManagement.Domain.Repositories.Repositories;
 public class SubscribedUserRepository : ISubscribedUserRepository
 {
     private readonly UserDbContext _userDbContext;
-
-    public SubscribedUserRepository(UserDbContext userDbContext)
+    private readonly ResponseHandler _responseHandler;
+    public SubscribedUserRepository(UserDbContext userDbContext, ResponseHandler responseHandler)
     {
         _userDbContext = userDbContext;
+        _responseHandler = responseHandler;
     }
 
     public async Task<IActionResult> SubscribeUser(string email)
@@ -30,11 +32,11 @@ public class SubscribedUserRepository : ISubscribedUserRepository
                 await _userDbContext.SaveChangesAsync();
             }
 
-        return new JsonResult(new { success = true, message = "Subscription processed successfully" });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.SubscribeUserSuccess, null));
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occured while saving subscribed user" + e);
+            throw new Exception(CustomErrorMessage.SubscribeUserError + e);
         }
     }
 
@@ -49,7 +51,7 @@ public class SubscribedUserRepository : ISubscribedUserRepository
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occured while fetching subscribed users"+e);
+            throw new Exception(CustomErrorMessage.FetchSubscribedUsersError + e);
         }
     }
 }

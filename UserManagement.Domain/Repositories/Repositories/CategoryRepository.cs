@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using UserManagement.Domain.DBContext;
 using UserManagement.Domain.Models;
 using UserManagement.Domain.Repositories.Interfaces;
+using UserManagement.Domain.utils;
 using UserManagement.Domain.ViewModels;
 
 namespace UserManagement.Domain.Repositories.Repositories;
@@ -28,7 +29,7 @@ public class CategoryRepository : ICategoryRepository
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occurred while fetching categories: " + e.Message);
+            throw new Exception(CustomErrorMessage.GetAllCategoriesError + e.Message);
         }
     }
 }

@@ -151,4 +151,229 @@ public class ValidationService : IValidationService
         ValidatePassword(authViewModel.Password);
         return errors;
     }
+
+    public List<ValidationError> ValidateRegistrationModel(RegistrationViewModel registrationViewModel)
+    {
+        errors = new List<ValidationError>();
+
+        if (registrationViewModel == null)
+        {
+            errors.Add(new ValidationError
+            {
+                message = CustomErrorMessage.NullModel,
+                reference = "RegistrationViewModel",
+                parameter = "RegistrationViewModel",
+                errorCode = CustomErrorCode.NullModel
+            });
+            return errors;
+        }
+
+        ValidateEmail(registrationViewModel.Email);
+        ValidatePassword(registrationViewModel.Password);
+        ValidatePhone(registrationViewModel.PhoneNumber);
+        ValidateName(registrationViewModel.FirstName);
+        ValidateName(registrationViewModel.LastName);
+        ValidateAddress(registrationViewModel.Address);
+
+        return errors;
+    }
+    public List<ValidationError> ValidateChangePasswordModel(ChangePasswordViewModel changePasswordViewModel)
+    {
+        errors = new List<ValidationError>();
+
+        if (changePasswordViewModel == null)
+        {
+            errors.Add(new ValidationError
+            {
+                message = CustomErrorMessage.NullModel,
+                reference = "ChangePasswordViewModel",
+                parameter = "ChangePasswordViewModel",
+                errorCode = CustomErrorCode.NullModel
+            });
+            return errors;
+        }
+
+        ValidatePassword(changePasswordViewModel.OldPassword);
+        ValidatePassword(changePasswordViewModel.NewPassword);
+        ValidatePassword(changePasswordViewModel.ConfirmPassword);
+        if (changePasswordViewModel.NewPassword != changePasswordViewModel.ConfirmPassword)
+        {
+            errors.Add(new ValidationError
+            {
+                message = CustomErrorMessage.NewAndConfirmPasswordMismatch,
+                reference = "ConfirmPassword",
+                parameter = "ConfirmPassword",
+                errorCode = CustomErrorCode.NewAndConfirmPasswordMismatch
+            });
+        }
+        return errors;
+    }
+    public List<ValidationError> ValidateProductModel(ProductViewModel productViewModel)
+    {
+
+        errors = new List<ValidationError>();
+
+        if (productViewModel == null)
+        {
+            errors.Add(new ValidationError
+            {
+                message = CustomErrorMessage.NullModel,
+                reference = "ProductViewModel",
+                parameter = "ProductViewModel",
+                errorCode = CustomErrorCode.NullModel
+            });
+            return errors;
+        }
+
+        if (string.IsNullOrWhiteSpace(productViewModel.Name))
+        {
+            errors.Add(new ValidationError
+            {
+                message = CustomErrorMessage.ProductNameRequired,
+                reference = "Name",
+                parameter = "Name",
+                errorCode = CustomErrorCode.NullName
+            });
+        }
+        else if (productViewModel.Name.Length < 2 || productViewModel.Name.Length > 50 ||
+                 !Regex.IsMatch(productViewModel.Name, @"^[a-zA-Z0-9\- ]{2,}$"))
+        {
+            errors.Add(new ValidationError
+            {
+                message = CustomErrorMessage.InvalidProductNameFormat,
+                reference = "Name",
+                parameter = "Name",
+                errorCode = CustomErrorCode.InvalidNameFormat
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(productViewModel.Description))
+        {
+            errors.Add(new ValidationError
+            {
+                message = CustomErrorMessage.ProductDescriptionRequired,
+                reference = "Description",
+                parameter = "Description",
+                errorCode = CustomErrorCode.NullDescription
+            });
+        }
+
+        if (productViewModel.Price <= 0)
+        {
+            errors.Add(new ValidationError
+            {
+                message = "Price must be a positive number.",
+                reference = "Price",
+                parameter = "Price",
+                errorCode = CustomErrorCode.InvalidPrice
+            });
+        }
+
+        if (productViewModel.Discount < 0 || productViewModel.Discount > 100)
+        {
+            errors.Add(new ValidationError
+            {
+                message = "Discount percentage must be between 0 and 100.",
+                reference = "Discount",
+                parameter = "Discount",
+                errorCode = CustomErrorCode.InvalidDiscount
+            });
+        }
+
+        return errors;
+    }
+    public List<ValidationError> ValidateEditProfileModel(EditProfileViewModel editProfileViewModel)
+    {
+        errors = new List<ValidationError>();
+
+        if (editProfileViewModel == null)
+        {
+            errors.Add(new ValidationError
+            {
+                message = CustomErrorMessage.NullModel,
+                reference = "EditProfileViewModel",
+                parameter = "EditProfileViewModel",
+                errorCode = CustomErrorCode.NullModel
+            });
+            return errors;
+        }
+
+        ValidateEmail(editProfileViewModel.Email);
+        ValidatePhone(editProfileViewModel.PhoneNumber);
+        ValidateName(editProfileViewModel.FirstName);
+        ValidateName(editProfileViewModel.LastName);
+        ValidateAddress(editProfileViewModel.Address);
+
+        return errors;
+    }
+    public List<ValidationError> ValidateOtpModel(OtpViewModel otpViewModel)
+    {
+        errors = new List<ValidationError>();
+
+        if (otpViewModel == null)
+        {
+            errors.Add(new ValidationError
+            {
+                message = CustomErrorMessage.NullModel,
+                reference = "OtpViewModel",
+                parameter = "OtpViewModel",
+                errorCode = CustomErrorCode.NullModel
+            });
+            return errors;
+        }
+
+        if (otpViewModel.OTP <= 0 || !Regex.IsMatch(otpViewModel.OTP.ToString(), @"^\d{6}$"))
+        {
+            errors.Add(new ValidationError
+            {
+                message = CustomErrorMessage.OTPInvalid,
+                reference = "OTP",
+                parameter = "OTP",
+                errorCode = CustomErrorCode.OTPInvalid
+            });
+        }
+
+        ValidateEmail(otpViewModel.Email ?? string.Empty);
+
+        return errors;
+    }
+    public List<ValidationError> ValidateResetPasswordModel(ResetPasswordViewModel resetPasswordViewModel)
+    {
+        errors = new List<ValidationError>();
+
+        if (resetPasswordViewModel == null)
+        {
+            errors.Add(new ValidationError
+            {
+                message = CustomErrorMessage.NullModel,
+                reference = "ResetPasswordViewModel",
+                parameter = "ResetPasswordViewModel",
+                errorCode = CustomErrorCode.NullModel
+            });
+            return errors;
+        }
+
+        ValidateEmail(resetPasswordViewModel.Email ?? string.Empty);
+        ValidatePassword(resetPasswordViewModel.NewPassword);
+        ValidatePassword(resetPasswordViewModel.ConfirmPassword);
+
+        if (resetPasswordViewModel.NewPassword != resetPasswordViewModel.ConfirmPassword)
+        {
+            errors.Add(new ValidationError
+            {
+                message = CustomErrorMessage.NewAndConfirmPasswordMismatch,
+                reference = "ConfirmPassword",
+                parameter = "ConfirmPassword",
+                errorCode = CustomErrorCode.NewAndConfirmPasswordMismatch
+            });
+        }
+
+        return errors;
+    }
+    public List<ValidationError> ValidateUserEmail(string email)
+    {
+        errors = new List<ValidationError>();
+        ValidateEmail(email);
+        return errors;
+    }
 }

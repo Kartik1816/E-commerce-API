@@ -1,6 +1,7 @@
 using System.Net.Mail;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UserManagement.Domain.utils;
 using UserManagement.Domain.ViewModels;
 using UserManagement.Services.Interfaces;
 
@@ -17,8 +18,12 @@ public class CLAController : ControllerBase
 {
     private readonly ICLAService _claService;
 
-    public CLAController(ICLAService claService)
+    private readonly IValidationService _validationService;
+    private readonly ResponseHandler _responseHandler;
+    public CLAController(ICLAService claService,IValidationService validationService, ResponseHandler responseHandler)
     {
+        _validationService = validationService;
+        _responseHandler = responseHandler;
         _claService = claService;
     }
 
@@ -33,9 +38,9 @@ public class CLAController : ControllerBase
         List<CategoryViewModel> categories = await _claService.GetAllCategoriesAsync();
         if (categories == null || !categories.Any())
         {
-            return NotFound(new { success = false, message = "No categories found" });
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.CategoryNotFound, CustomErrorMessage.CategoryNotFound, null));
         }
-        return Ok(new { success = true, data = categories });
+        return Ok(_responseHandler.Success(CustomErrorMessage.GetAllCategoriesSuccess, categories));
     }
 
     /// <summary>
@@ -50,9 +55,9 @@ public class CLAController : ControllerBase
         List<ProductViewModel> products = await _claService.GetProductsByCategoryAsync(categoryId, userId);
         if (products == null)
         {
-            return NotFound(new { success = false, message = "No products found for this category" });
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.ProductNotFound, CustomErrorMessage.ProductNotFound, null));
         }
-        return Ok(new { success = true, data = products });
+        return Ok(_responseHandler.Success(CustomErrorMessage.FetchProductListSuccess, products));
     }
 
 
@@ -64,9 +69,10 @@ public class CLAController : ControllerBase
     [HttpPost("saveProduct")]
     public async Task<IActionResult> SaveProduct([FromBody] ProductViewModel productViewModel)
     {
-        if (!ModelState.IsValid)
+        List<ValidationError> errors = _validationService.ValidateProductModel(productViewModel);
+        if (errors.Any())
         {
-            return new JsonResult(new { success = false, message = "Please Enter Valid Data" });
+            return BadRequest(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.InvalidProductModel, errors));
         }
         return await _claService.SaveProduct(productViewModel);
     }
@@ -82,7 +88,7 @@ public class CLAController : ControllerBase
     {
         if (productId <= 0)
         {
-            return new JsonResult(new { success = true, message = "Product not found" });
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.ProductNotFound, CustomErrorMessage.ProductNotFound, null));
         }
         return await _claService.GetProductDetails(productId);
     }
@@ -99,7 +105,7 @@ public class CLAController : ControllerBase
     {
         if (productId <= 0 || userId <= 0)
         {
-            return new JsonResult(new { success = false, message = "Invalid product or user ID" });
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.ProductUserNotFound, CustomErrorMessage.ProductUserNotFound, null));
         }
         return await _claService.GetProductDetailsWithWishListDetails(productId, userId);
     }
@@ -115,7 +121,7 @@ public class CLAController : ControllerBase
     {
         if (productId <= 0)
         {
-            return new JsonResult(new { success = true, message = "Product not found" });
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.ProductNotFound, CustomErrorMessage.ProductNotFound, null));
         }
         return await _claService.DeleteProduct(productId);
     }
@@ -130,12 +136,7 @@ public class CLAController : ControllerBase
     [HttpPost("subscribe-user")]
     public async Task<IActionResult> SubscribeNewUser([FromBody] string email)
     {
-        MailAddress mailAddress = new System.Net.Mail.MailAddress(email);
-
-        if (mailAddress.Address != email)
-        {
-            return new JsonResult(new { success = true, message = "Inavalid email format" });
-        }
+        List<ValidationError> errors = _validationService.ValidateUserEmail(email);
         return await _claService.SubscribeUser(email);
     }
 
@@ -161,7 +162,7 @@ public class CLAController : ControllerBase
     public async Task<IActionResult> GetAllSubScribedUsers()
     {
         SubscribedUsersModel subscribedUsersModel = await _claService.GetAllSubScribedUsers();
-        return new JsonResult(new { data = subscribedUsersModel });
+        return Ok(_responseHandler.Success(CustomErrorMessage.FetchSubscribedUsersSuccess, subscribedUsersModel));
     }
 
 
@@ -178,11 +179,11 @@ public class CLAController : ControllerBase
     [HttpGet("GetTopFiveOfferedProducts")]
     public async Task<IActionResult> GetTopFiveOfferedProducts()
     {
-        List<ProductViewModel> topTenOfferedProducts = await _claService.GetTopFiveOfferedProducts();
-        if (topTenOfferedProducts == null || !topTenOfferedProducts.Any())
+        List<ProductViewModel> topFiveOfferedProducts = await _claService.GetTopFiveOfferedProducts();
+        if (topFiveOfferedProducts == null || !topFiveOfferedProducts.Any())
         {
-            return NotFound(new { success = false, message = "No offered products found" });
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.NoOfferedProductNotFound, CustomErrorMessage.NoOfferedProductNotFound, null));
         }
-        return Ok(new { success = true, data = topTenOfferedProducts });
+        return Ok(_responseHandler.Success(CustomErrorMessage.GetOfferedProductsSuccess, topFiveOfferedProducts));
     }
 }

@@ -6,6 +6,7 @@ using UserManagement.Domain.DBContext;
 using UserManagement.Domain.Hubs;
 using UserManagement.Domain.Models;
 using UserManagement.Domain.Repositories.Interfaces;
+using UserManagement.Domain.utils;
 using UserManagement.Domain.ViewModels;
 
 namespace UserManagement.Domain.Repositories.Repositories;
@@ -15,19 +16,21 @@ public class ProductRepository : IProductRepository
     private readonly UserDbContext _userDbContext;
 
     private readonly IHubContext<NotificationHub> _hubContext;
-    public ProductRepository(UserDbContext userDbContext, IHubContext<NotificationHub> hubContext)
+
+    private readonly ResponseHandler _responseHandler;
+    public ProductRepository(UserDbContext userDbContext, IHubContext<NotificationHub> hubContext, ResponseHandler responseHandler)
     {
         _userDbContext = userDbContext;
         _hubContext = hubContext;
+        _responseHandler = responseHandler;
     }
 
     public async Task<IActionResult> SaveProductAsync(ProductViewModel productViewModel)
     {
         if (productViewModel == null)
         {
-            return new JsonResult(new { success = false, message = "Product Details Required" });
+            return new BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.InvalidProductModel, null));
         }
-
         try
         {
 
@@ -41,13 +44,7 @@ public class ProductRepository : IProductRepository
 
             if (await duplicateCheckQuery.AnyAsync())
             {
-                return new JsonResult(new
-                {
-                    success = false,
-                    message = productViewModel.Id > 0 ?
-                        "Product with name already exists" :
-                        "Product already exists"
-                });
+                return new BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.ProductNameAlreadyExists, null));
             }
 
             Product product;
@@ -67,7 +64,7 @@ public class ProductRepository : IProductRepository
                 product = await _userDbContext.Products.FirstOrDefaultAsync(p => p.Id == productViewModel.Id);
                 if (product == null)
                 {
-                    return new JsonResult(new { success = false, message = "Product not found" });
+                    return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.IsValid, CustomErrorMessage.ProductNotFound, null));
                 }
 
                 product.UpdatedAt = DateTime.Now;
@@ -110,18 +107,17 @@ public class ProductRepository : IProductRepository
                     Discount = product.Discount
                 });
             }
-            return new JsonResult(new
-                {
-                    success = true,
-                    message = isNewProduct ? "Product added successfully" : "Product updated successfully",
-                    offer = product.Discount > 0,
-                    data = product.Discount > 0 ? productViewModel : null
-                });
-            
+            ProductOfferModel productOfferModel = new()
+            {
+                ProductViewModel = product.Discount > 0 ? productViewModel : null,
+                IsOffer = product.Discount > 0
+            };
+            return new OkObjectResult(_responseHandler.Success(isNewProduct ? CustomErrorMessage.ProductAddSuccess : CustomErrorMessage.ProductUpdateSuccess,productOfferModel));
+           
         }
         catch (Exception ex)
         {
-            throw new Exception("An Exception occured while saving the product" + ex);
+            throw new Exception(CustomErrorMessage.ProductSaveError + ex);
         }
     }
 
@@ -150,7 +146,7 @@ public class ProductRepository : IProductRepository
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occurred while fetching products: " + e.Message);
+            throw new Exception(CustomErrorMessage.FetchProductListSuccess + e.Message);
         }
     }
 
@@ -176,14 +172,14 @@ public class ProductRepository : IProductRepository
 
             if (product == null)
             {
-                return new JsonResult(new { success = false, message = "Product not found" });
+                return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.ProductNotFound, CustomErrorMessage.ProductNotFound, null));
             }
 
-            return new JsonResult(new { success = true, data = product });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.ProductDetailsSuccess, product));
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occurred while fetching product details: " + e.Message);
+            throw new Exception(CustomErrorMessage.ProductDetailsError + e.Message);
         }
     }
 
@@ -194,7 +190,7 @@ public class ProductRepository : IProductRepository
             Product? product = await _userDbContext.Products.Where(p => p.Id == productId).FirstOrDefaultAsync();
             if (product == null)
             {
-                return new JsonResult(new { success = false, message = "Product not found" });
+                return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.ProductNotFound, CustomErrorMessage.ProductNotFound, null));
             }
 
             product.IsDeleted = true;
@@ -213,11 +209,11 @@ public class ProductRepository : IProductRepository
                     _userDbContext.SaveChanges();
                 }
             }
-            return new JsonResult(new { success = true, message = "Product deleted successfully" });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.ProductDeleteSuccess, null));
         }
         catch (Exception e)
         {
-            throw new Exception("An exception occured while deleting the product " + e);
+            throw new Exception(CustomErrorMessage.ProductDeleteError + e);
         }
     }
     public async Task<IActionResult> GetProductDetailsWithWishListDetails(int productId, int userId)
@@ -271,14 +267,14 @@ public class ProductRepository : IProductRepository
 
             if (product == null)
             {
-                return new JsonResult(new { success = false, message = "Product not found" });
+                return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.ProductNotFound, CustomErrorMessage.ProductNotFound, null));
             }
 
-            return new JsonResult(new { success = true, data = product });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.ProductDetailsWithWishListSuccess, product));
         }
         catch (Exception e)
         {
-            throw new Exception("An Exception occurred while fetching product details: " + e.Message);
+            throw new Exception(CustomErrorMessage.ProductDetailsWithWishListError + e.Message);
         }
     }
 
@@ -299,11 +295,11 @@ public class ProductRepository : IProductRepository
                 MinDiscountPercentage = minDiscount,
                 MaxDiscountPercentage = maxDiscount
             };
-            return new JsonResult(new { success = true, data = newSubscriberModel });
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.GetMinMaxDiscountSuccess, newSubscriberModel));
         }
         catch (Exception e)
         {
-            throw new Exception("An exception occured while getting minimun and maximum discount" + e);
+            throw new Exception(CustomErrorMessage.GetMinMaxDiscountError + e);
         }
     }
 
@@ -328,7 +324,7 @@ public class ProductRepository : IProductRepository
         }
         catch (Exception e)
         {
-            throw new Exception("An exception occured getting offered products" + e);
+            throw new Exception(CustomErrorMessage.GetOfferedProductsError + e);
         }
     }
 
@@ -359,7 +355,7 @@ public class ProductRepository : IProductRepository
         }
         catch (Exception e)
         {
-            throw new Exception("An exception occured while getting top ten offered products" + e);
+            throw new Exception(CustomErrorMessage.GetOfferedProductsError + e);
         }
     }
 }
