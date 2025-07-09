@@ -7,7 +7,7 @@ public interface IProductRepository
 {
     public Task<IActionResult> SaveProductAsync(ProductViewModel productViewModel);
 
-    public Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId);
+    public Task<PaginatedResponse<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId,PaginationRequestModel paginationRequestModel);
 
     public Task<IActionResult> GetProductDetails(int productId);
 

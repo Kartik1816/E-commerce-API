@@ -15,4 +15,6 @@ public class OrderProductViewModel
     public decimal Discount { get; set; }
 
     public string ImageUrl { get; set; } = null!;
+
+    public string UniqueCode { get; set; } = null!;
 }

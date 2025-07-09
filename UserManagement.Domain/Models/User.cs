@@ -35,6 +35,8 @@ public partial class User
 
     public DateTime? OtpExpireTime { get; set; }
 
+    public virtual ICollection<Category> Categories { get; set; } = new List<Category>();
+
     public virtual User? CreatedByNavigation { get; set; }
 
     public virtual ICollection<User> InverseCreatedByNavigation { get; set; } = new List<User>();

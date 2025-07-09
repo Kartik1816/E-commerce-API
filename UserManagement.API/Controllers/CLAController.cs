@@ -50,9 +50,10 @@ public class CLAController : ControllerBase
     /// <param name="userId"></param>
     /// <returns></returns>
     [HttpGet("products")]
-    public async Task<IActionResult> GetProductsByCategory([FromQuery] int categoryId, [FromQuery] int userId)
+    public async Task<IActionResult> GetProductsByCategory([FromQuery] int categoryId, [FromQuery] int userId,[FromQuery] PaginationRequestModel paginationRequest)
     {
-        List<ProductViewModel> products = await _claService.GetProductsByCategoryAsync(categoryId, userId);
+        PaginatedResponse<ProductViewModel> products = await _claService.GetProductsByCategoryAsync(categoryId, userId,paginationRequest);
+
         if (products == null)
         {
             return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.ProductNotFound, CustomErrorMessage.ProductNotFound, null));

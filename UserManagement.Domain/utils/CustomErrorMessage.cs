@@ -95,4 +95,15 @@ public class CustomErrorMessage
     public const string GetMinMaxDiscountError = "An Exception occurred while fetching minimum and maximum discount.";
     public const string SubscribeUserSuccess = "User subscribed successfully.";
     public const string SubscribeUserError = "An Exception occurred while subscribing user.";
+    public const string OrderNotFound = "Order not found.";
+    public const string GetOrderDetailsSuccess = "Order details fetched successfully.";
+    public const string GetOrderDetailsError = "An Exception occurred while fetching order details.";
+    public const string InvalidCategoryModel = "Invalid category model.";
+    public const string CategorySavedSuccessfully = "Category saved successfully.";
+    public const string CategorySaveError = "An error occurred while saving the category.";
+    public const string CategoryAlreadyExists = "Category already exists.";
+    public const string CategoryDeletedSuccessfully = "Category deleted successfully.";
+    public const string CategoryDeleteError = "An error occurred while deleting the category.";
+    public const string CategoryHasProducts = "Category cannot be deleted as it has associated products.";
+    public const string InvalidCategoryId = "Invalid category ID.";
 }

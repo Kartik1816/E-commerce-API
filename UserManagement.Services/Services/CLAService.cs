@@ -22,9 +22,9 @@ public class CLAService : ICLAService
     {
         return await _categoryRepository.GetAllCategoriesAsync();
     }
-    public async Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId)
+    public async Task<PaginatedResponse<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId,PaginationRequestModel paginationRequestModel)
     {
-        return await _productRepository.GetProductsByCategoryAsync(categoryId, userId);
+        return await _productRepository.GetProductsByCategoryAsync(categoryId, userId,paginationRequestModel);
     }
     public async Task<IActionResult> SaveProduct(ProductViewModel productViewModel)
     {

@@ -33,4 +33,9 @@ public class OrderService : IOrderService
     {
         return await _orderRepository.SaveCustomerReview(customerReviewModel);
     }
+
+    public Task<IActionResult> GetOrderDetails(int orderId)
+    {
+        return _orderRepository.GetOrderDetails(orderId);
+    }
 }

@@ -52,13 +52,27 @@ public partial class UserDbContext : DbContext
 
             entity.ToTable("categories");
 
+            entity.HasIndex(e => e.CreatedBy, "fki_fk_created_by");
+
             entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CreatedBy)
+                .ValueGeneratedOnAdd()
+                .UseIdentityAlwaysColumn()
+                .HasColumnName("created_by");
             entity.Property(e => e.Description)
                 .HasColumnType("character varying")
                 .HasColumnName("description");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasColumnName("name");
+
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.Categories)
+                .HasForeignKey(d => d.CreatedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_created_by");
         });
 
         modelBuilder.Entity<Order>(entity =>
@@ -150,6 +164,9 @@ public partial class UserDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasColumnName("name");
+            entity.Property(e => e.ProductCode)
+                .HasColumnType("character varying")
+                .HasColumnName("product_code");
             entity.Property(e => e.Rate)
                 .HasPrecision(10, 2)
                 .HasColumnName("rate");

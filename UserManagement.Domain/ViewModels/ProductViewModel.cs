@@ -33,4 +33,5 @@ public class ProductViewModel
     public List<CommentModel>? CommentModels { get; set; }
     public List<IFormFile>? ProductImages { get; set; }
     public List<string>? ImageUrls { get; set; }
+    public string? UniqueCode { get; set; }
 }

@@ -18,11 +18,15 @@ public class ProductRepository : IProductRepository
     private readonly IHubContext<NotificationHub> _hubContext;
 
     private readonly ResponseHandler _responseHandler;
-    public ProductRepository(UserDbContext userDbContext, IHubContext<NotificationHub> hubContext, ResponseHandler responseHandler)
+
+    private readonly PaginationService _paginationService;
+
+    public ProductRepository(UserDbContext userDbContext, IHubContext<NotificationHub> hubContext, ResponseHandler responseHandler, PaginationService paginationService)
     {
         _userDbContext = userDbContext;
         _hubContext = hubContext;
         _responseHandler = responseHandler;
+        _paginationService = paginationService;
     }
 
     public async Task<IActionResult> SaveProductAsync(ProductViewModel productViewModel)
@@ -55,7 +59,8 @@ public class ProductRepository : IProductRepository
                 product = new Product
                 {
                     CreatedAt = DateTime.Now,
-                    CreatedBy = productViewModel.UserId
+                    CreatedBy = productViewModel.UserId,
+                    ProductCode = RandomCodeGenerator.GenerateRandomCode()
                 };
                 _userDbContext.Products.Add(product);
             }
@@ -121,29 +126,29 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId)
+    public async Task<PaginatedResponse<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId,PaginationRequestModel paginationRequestModel)
     {
         try
         {
             int userRole = _userDbContext.Users.FirstOrDefault(u => u.Id == userId)?.RoleId ?? 0;
 
-            return await _userDbContext.Products.Where(p => p.CategoryId == categoryId
-             && p.IsDeleted == false)
-            .Where(p => userRole == 1 ? p.CreatedBy == userId : true)
-            .Select(p => new ProductViewModel
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Description = p.Description ?? string.Empty,
-                Price = p.Rate,
-                CategoryId = p.CategoryId,
-                ImageUrl = p.ImageUrl,
-                UserId = p.CreatedBy,
-                Discount = p.Discount ?? 0
-            })
-            .OrderBy(p => p.Id)
-            .ToListAsync();
-        }
+            IQueryable<ProductViewModel> query = _userDbContext.Products
+                .Where(p => p.CategoryId == categoryId && p.IsDeleted == false)
+                .Where(p => userRole == 1 ? p.CreatedBy == userId : true)
+                .Select(p => new ProductViewModel
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description ?? string.Empty,
+                    Price = p.Rate,
+                    CategoryId = p.CategoryId,
+                    ImageUrl = p.ImageUrl,
+                    UserId = p.CreatedBy,
+                    Discount = p.Discount ?? 0
+                })
+                .OrderBy(p => p.Id);
+            return await _paginationService.GetPaginatedDataAsync(query, paginationRequestModel.PageNumber, paginationRequestModel.PageSize);
+        }   
         catch (Exception e)
         {
             throw new Exception(CustomErrorMessage.FetchProductListSuccess + e.Message);

@@ -30,8 +30,18 @@ public class OrdersController : ControllerBase
     {
         if (customerReviewModel.ProductId <= 0 || customerReviewModel.UserId <= 0)
         {
-           return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.ProductUserNotFound, CustomErrorMessage.ProductUserNotFound, null));
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.ProductUserNotFound, CustomErrorMessage.ProductUserNotFound, null));
         }
         return await _orderService.SaveCustomerReview(customerReviewModel);
+    }
+
+    [HttpGet("{orderId}")]
+    public async Task<IActionResult> GetOrderDetails(int orderId)
+    {
+        if (orderId <= 0)
+        {
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.OrderNotFound, CustomErrorMessage.OrderNotFound, null));
+        }
+        return await _orderService.GetOrderDetails(orderId);
     }
 }

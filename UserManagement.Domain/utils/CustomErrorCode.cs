@@ -31,4 +31,7 @@ public class CustomErrorCode
     public const string OTPInvalid = "OTP_INVALID";
     public const string CategoryNotFound = "CATEGORY_NOT_FOUND";
     public const string NoOfferedProductNotFound = "NO_OFFERED_PRODUCT_NOT_FOUND";
+    public const string OrderNotFound = "ORDER_NOT_FOUND";
+    public const string CategoryAlreadyExists = "CATEGORY_ALREADY_EXISTS";
+    public const string CategoryHasProducts = "CATEGORY_HAS_PRODUCTS";
 }

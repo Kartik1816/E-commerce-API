@@ -12,4 +12,6 @@ public interface IOrderRepository
     public Task<IActionResult> GetUsersOrder(int userId);
 
     public Task<IActionResult> SaveCustomerReview(CustomerReviewModel customerReviewModel);
+
+    public Task<IActionResult> GetOrderDetails(int orderId);
 }

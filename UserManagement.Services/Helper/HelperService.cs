@@ -8,4 +8,5 @@ public class HelperService
         int otp = random.Next(100000, 999999);
         return otp;
     }
+    
 }

@@ -143,7 +143,7 @@ public class OrderRepository : IOrderRepository
                 OrderDetailsViewModels = orders
             };
             return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.GetUserOrdersSuccess, userOrders));
-            
+
         }
         catch (Exception ex)
         {
@@ -176,6 +176,77 @@ public class OrderRepository : IOrderRepository
         catch (Exception e)
         {
             throw new Exception(CustomErrorMessage.SaveCustomerReviewError + e);
+        }
+    }
+
+    public async Task<IActionResult> GetOrderDetails(int orderId)
+    {
+        try
+        {
+            if (orderId <= 0)
+            {
+                return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.OrderNotFound, CustomErrorMessage.OrderNotFound, null));
+            }
+            
+            List<OrderProduct> orderProducts = await _userDbContext.OrderProducts
+                .Where(op => op.OrderId == orderId)
+                .Include(op => op.Product)
+                .ThenInclude(p => p.Category)
+                .ToListAsync();
+
+            foreach (OrderProduct op in orderProducts)
+            {
+                Product product = op.Product;
+                if (string.IsNullOrEmpty(product.ProductCode))
+                {
+                    product.ProductCode = RandomCodeGenerator.GenerateRandomCode(); // your method
+                    _userDbContext.Products.Update(product);
+                }
+            }
+
+            await _userDbContext.SaveChangesAsync(); 
+
+            // Step 3: Project to ViewModel
+            List<OrderProductViewModel> orderProductViewModels = orderProducts
+                .Select(op => new OrderProductViewModel
+                {
+                    ProductId = op.ProductId,
+                    ProductName = op.Product.Name,
+                    CategoryName = op.Product.Category?.Name ?? string.Empty,
+                    Quantity = op.Quantity ?? 0,
+                    Price = op.Price ?? 0,
+                    Discount = op.Discount ?? 0,
+                    ImageUrl = op.Product.ImageUrl ?? string.Empty,
+                    UniqueCode = op.Product.ProductCode ?? string.Empty
+                }).ToList();
+
+            OrderDetailsViewModel orderDetails = await _userDbContext.Orders
+                .Where(o => o.Id == orderId)
+                .Include(o=>o.CreatedByNavigation)
+                .Select(o => new OrderDetailsViewModel
+                {
+                    OrderId = o.Id,
+                    Status = o.Status ?? string.Empty,
+                    TotalAmount = o.Amount ?? 0,
+                    UserId = o.CreatedBy,
+                    CreatedAt = o.CreatedAt,
+                    CustomerName = o.CreatedByNavigation.FirstName,
+                    CustomerEmail = o.CreatedByNavigation.Email ?? string.Empty,
+                    CustomerAddress = o.CreatedByNavigation.Address ?? string.Empty,
+                    OrderProductViewModels = orderProductViewModels
+                })
+                .FirstOrDefaultAsync() ?? new OrderDetailsViewModel();
+
+            if (orderDetails == null)
+            {
+                return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.OrderNotFound, CustomErrorMessage.OrderNotFound, null));
+            }
+
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.GetOrderDetailsSuccess, orderDetails));
+        }
+        catch (Exception e)
+        {
+            throw new Exception(CustomErrorMessage.GetOrderDetailsError + e);
         }
     }
 }

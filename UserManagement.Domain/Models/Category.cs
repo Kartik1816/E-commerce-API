@@ -11,5 +11,11 @@ public partial class Category
 
     public string? Description { get; set; }
 
+    public int CreatedBy { get; set; }
+
+    public bool? IsDeleted { get; set; }
+
+    public virtual User CreatedByNavigation { get; set; } = null!;
+
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 }

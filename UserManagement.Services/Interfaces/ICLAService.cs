@@ -7,7 +7,7 @@ public interface ICLAService
 {
     public Task<List<CategoryViewModel>> GetAllCategoriesAsync();
 
-    public Task<List<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId);
+    public Task<PaginatedResponse<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId,PaginationRequestModel paginationRequest);
 
     public Task<IActionResult> SaveProduct(ProductViewModel productViewModel);
 

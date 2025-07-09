@@ -31,6 +31,8 @@ public partial class Product
 
     public decimal? Discount { get; set; }
 
+    public string? ProductCode { get; set; }
+
     public virtual Category Category { get; set; } = null!;
 
     public virtual User CreatedByNavigation { get; set; } = null!;

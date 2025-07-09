@@ -13,4 +13,10 @@ public class OrderDetailsViewModel
     public DateTime CreatedAt { get; set; }
 
     public List<OrderProductViewModel> OrderProductViewModels { get; set; } = null!;
+
+    public string CustomerName { get; set; } = null!;
+
+    public string CustomerEmail { get; set; } = null!;
+    
+    public string CustomerAddress { get; set; } = null!;
 }

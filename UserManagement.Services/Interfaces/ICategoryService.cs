@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using UserManagement.Domain.ViewModels;
 
-namespace UserManagement.Domain.Repositories.Interfaces;
+namespace UserManagement.Services.Interfaces;
 
-public interface ICategoryRepository
+public interface ICategoryService
 {
-    public Task<List<CategoryViewModel>> GetAllCategoriesAsync();
     public Task<IActionResult> SaveCategoryAsync(CategoryViewModel categoryViewModel);
     public Task<IActionResult> DeleteCategoryAsync(int id);
 }
