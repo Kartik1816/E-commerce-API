@@ -15,7 +15,9 @@ public partial class Category
 
     public bool? IsDeleted { get; set; }
 
-    public virtual User CreatedByNavigation { get; set; } = null!;
+    public bool? IsReleased { get; set; }
+
+    public string? ImageUrl { get; set; }
 
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 }

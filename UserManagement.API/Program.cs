@@ -57,6 +57,7 @@ builder.Services.AddScoped<ISubscribedUserRepository, SubscribedUserRepository>(
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IValidationService, ValidationService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddSingleton<ResponseHandler>();
 builder.Services.AddSingleton<PaginationService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

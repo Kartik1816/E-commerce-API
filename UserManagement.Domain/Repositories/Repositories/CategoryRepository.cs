@@ -26,7 +26,8 @@ public class CategoryRepository : ICategoryRepository
             {
                 Id = c.Id,
                 Name = c.Name,
-                Description = c.Description ?? string.Empty
+                Description = c.Description ?? string.Empty,
+                IsReleased = (bool)(c.IsReleased ?? false)
             }).OrderBy(c => c.Id).ToListAsync();
         }
         catch (Exception e)
@@ -51,7 +52,8 @@ public class CategoryRepository : ICategoryRepository
                 {
                     Name = categoryViewModel.Name,
                     Description = categoryViewModel.Description,
-                    CreatedBy = 1
+                    CreatedBy = 1,
+                    ImageUrl = categoryViewModel.ImageUrl,
                 };
                 await _userDbContext.Categories.AddAsync(newCategory);
             }

@@ -54,25 +54,25 @@ public partial class UserDbContext : DbContext
 
             entity.HasIndex(e => e.CreatedBy, "fki_fk_created_by");
 
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.CreatedBy)
-                .ValueGeneratedOnAdd()
-                .UseIdentityAlwaysColumn()
-                .HasColumnName("created_by");
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("nextval('orders_id_seq'::regclass)")
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedBy).HasColumnName("created_by");
             entity.Property(e => e.Description)
                 .HasColumnType("character varying")
                 .HasColumnName("description");
+            entity.Property(e => e.ImageUrl)
+                .HasColumnType("character varying")
+                .HasColumnName("image_url");
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
+            entity.Property(e => e.IsReleased)
+                .HasDefaultValue(false)
+                .HasColumnName("is_released");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .HasColumnName("name");
-
-            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.Categories)
-                .HasForeignKey(d => d.CreatedBy)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_created_by");
         });
 
         modelBuilder.Entity<Order>(entity =>
