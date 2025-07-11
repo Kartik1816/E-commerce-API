@@ -22,7 +22,7 @@ public class CategoryRepository : ICategoryRepository
     {
         try
         {
-            return await _userDbContext.Categories.Select(c => new CategoryViewModel
+            return await _userDbContext.Categories.Where(c => c.IsDeleted == false).Select(c => new CategoryViewModel
             {
                 Id = c.Id,
                 Name = c.Name,
@@ -87,7 +87,7 @@ public class CategoryRepository : ICategoryRepository
                 return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.CategoryNotFound, CustomErrorMessage.CategoryNotFound, null));
             }
             //if there are any products associated with this category, we cannot delete it
-            bool hasProducts = await _userDbContext.Products.AnyAsync(p => p.CategoryId == id && p.IsDeleted ==false);
+            bool hasProducts = await _userDbContext.Products.AnyAsync(p => p.CategoryId == id && p.IsDeleted == false);
             if (hasProducts)
             {
                 return new BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.CategoryHasProducts, CustomErrorMessage.CategoryHasProducts, null));
@@ -101,6 +101,50 @@ public class CategoryRepository : ICategoryRepository
         catch (Exception e)
         {
             throw new Exception(CustomErrorMessage.CategoryDeleteError + e.Message);
+        }
+    }
+
+    public Task<List<CategoryViewModel>> GetReleasedCategoriesAsync()
+    {
+        try
+        {
+            return _userDbContext.Categories
+                .Where(c => c.IsReleased == true && c.IsDeleted == false)
+                .Select(c => new CategoryViewModel
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description ?? string.Empty,
+                    IsReleased = (bool)(c.IsReleased ?? false),
+                    ImageUrl = c.ImageUrl
+                })
+                .OrderBy(c => c.Id)
+                .ToListAsync();
+        }
+        catch (Exception e)
+        {
+            throw new Exception(CustomErrorMessage.GetAllCategoriesError + e.Message);
+        }
+    }
+    public async Task<CategoryViewModel> GetCategoryByIdAsync(int id)
+    {
+        try
+        {
+            return await _userDbContext.Categories
+                .Where(c => c.Id == id && c.IsDeleted == false)
+                .Select(c => new CategoryViewModel
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description ?? string.Empty,
+                    IsReleased = (bool)(c.IsReleased ?? false),
+                    ImageUrl = c.ImageUrl
+                })
+                .FirstOrDefaultAsync() ?? throw new Exception(CustomErrorMessage.CategoryNotFound);
+        }
+        catch (Exception e)
+        {
+            throw new Exception(CustomErrorMessage.GetCategoryByIdError + e.Message);
         }
     }
 }

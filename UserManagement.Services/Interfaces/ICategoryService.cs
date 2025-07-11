@@ -7,4 +7,5 @@ public interface ICategoryService
 {
     public Task<IActionResult> SaveCategoryAsync(CategoryViewModel categoryViewModel);
     public Task<IActionResult> DeleteCategoryAsync(int id);
+    public Task<CategoryViewModel> GetCategoryByIdAsync(int id);
 }

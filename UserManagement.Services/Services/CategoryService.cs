@@ -21,4 +21,8 @@ public class CategoryService : ICategoryService
     {
         return await _categoryRepository.DeleteCategoryAsync(id);
     }
+    public async Task<CategoryViewModel> GetCategoryByIdAsync(int id)
+    {
+        return await _categoryRepository.GetCategoryByIdAsync(id);
+    }
 }

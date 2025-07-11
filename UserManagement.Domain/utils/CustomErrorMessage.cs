@@ -106,4 +106,6 @@ public class CustomErrorMessage
     public const string CategoryDeleteError = "An error occurred while deleting the category.";
     public const string CategoryHasProducts = "Category cannot be deleted as it has associated products.";
     public const string InvalidCategoryId = "Invalid category ID.";
+    public const string GetCategoryByIdSuccess = "Category fetched successfully by ID.";
+    public const string GetCategoryByIdError = "An error occurred while fetching category by ID.";
 }

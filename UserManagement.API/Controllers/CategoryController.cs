@@ -28,7 +28,7 @@ public class CategoryController : ControllerBase
         return await _categoryService.SaveCategoryAsync(categoryViewModel);
     }
 
-    [HttpPost("delete-category/{id}")]
+    [HttpDelete("delete-category/{id}")]
     public async Task<IActionResult> DeleteCategory(int id)
     {
         if (id <= 0)
@@ -36,5 +36,20 @@ public class CategoryController : ControllerBase
             return BadRequest(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.InvalidCategoryId, new List<ValidationError>()));
         }
         return await _categoryService.DeleteCategoryAsync(id);
+    }
+
+    [HttpGet("get-category-by-id/{id}")]
+    public async Task<IActionResult> GetCategoryById(int id)
+    {
+        if (id <= 0)
+        {
+            return BadRequest(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.InvalidCategoryId, new List<ValidationError>()));
+        }
+        CategoryViewModel? category = await _categoryService.GetCategoryByIdAsync(id);
+        if (category == null)
+        {
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.CategoryNotFound, CustomErrorMessage.CategoryNotFound, null));
+        }
+        return Ok(_responseHandler.Success(CustomErrorMessage.GetCategoryByIdSuccess, category));
     }
 }

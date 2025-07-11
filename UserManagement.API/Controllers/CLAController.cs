@@ -43,6 +43,17 @@ public class CLAController : ControllerBase
         return Ok(_responseHandler.Success(CustomErrorMessage.GetAllCategoriesSuccess, categories));
     }
 
+    [HttpGet("released-categories")]
+    public async Task<IActionResult> GetReleasedCategories()
+    {
+        List<CategoryViewModel> categories = await _claService.GetReleasedCategoriesAsync();
+        if (categories == null || !categories.Any())
+        {
+            return NotFound(_responseHandler.NotFoundRequest(CustomErrorCode.CategoryNotFound, CustomErrorMessage.CategoryNotFound, null));
+        }
+        return Ok(_responseHandler.Success(CustomErrorMessage.GetAllCategoriesSuccess, categories));
+    }
+
     /// <summary>
     /// Get  Product List by CategoryId and userRole
     /// </summary>
