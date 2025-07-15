@@ -52,4 +52,30 @@ public class CategoryController : ControllerBase
         }
         return Ok(_responseHandler.Success(CustomErrorMessage.GetCategoryByIdSuccess, category));
     }
+
+    [HttpGet("filter/{ids}")]
+    public async Task<IActionResult> GetCategoriesByIds(string ids)
+    {
+        if (string.IsNullOrEmpty(ids))
+        {
+            return BadRequest(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.InvalidCategoryIds, new List<ValidationError>()));
+        }
+
+        List<int> categoryIds = ids.Split(',').Select(id => int.Parse(id)).ToList();
+        if (categoryIds.Count == 0)
+        {
+            return BadRequest(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.InvalidCategoryIds, new List<ValidationError>()));
+        }
+        return await _categoryService.GetCategoriesByIdsAsync(categoryIds);
+    }
+
+    [HttpPost("release-category")]
+    public async Task<IActionResult> ReleaseCategory([FromBody] int id)
+    {
+        if (id <= 0)
+        {
+            return BadRequest(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.InvalidCategoryId, new List<ValidationError>()));
+        }
+        return await _categoryService.ReleaseCategoryAsync(id);
+    }
 }

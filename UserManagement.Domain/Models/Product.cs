@@ -33,6 +33,10 @@ public partial class Product
 
     public string? ProductCode { get; set; }
 
+    public int? Quantity { get; set; }
+
+    public int? SoldQuantity { get; set; }
+
     public virtual Category Category { get; set; } = null!;
 
     public virtual User CreatedByNavigation { get; set; } = null!;

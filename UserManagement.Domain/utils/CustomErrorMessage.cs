@@ -108,4 +108,11 @@ public class CustomErrorMessage
     public const string InvalidCategoryId = "Invalid category ID.";
     public const string GetCategoryByIdSuccess = "Category fetched successfully by ID.";
     public const string GetCategoryByIdError = "An error occurred while fetching category by ID.";
+    public const string GetCategoriesByIdsError = "An error occurred while fetching categories by IDs.";
+    public const string GetCategoriesByIdsSuccess = "Categories fetched successfully by IDs.";
+    public const string InvalidCategoryIds = "Invalid category IDs provided.";
+    public const string CategoryReleasedSuccessfully = "Category released successfully.";
+    public const string CategoryReleaseError = "An error occurred while releasing the category.";
+    public const string QuantityCannotBeIncreased = "Quantity cannot be increased as it exceeds available stock.";
+    public const string QuantityCannotBeDecreased = "Quantity cannot be decreased below 1.";
 }

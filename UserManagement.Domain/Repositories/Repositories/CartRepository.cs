@@ -124,6 +124,14 @@ public class CartRepository : ICartRepository
             {
                return new  BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.ProductIsNotInCart, null));
             }
+            int TotalStock = _userDbContext.Products.FirstOrDefault(p => p.Id == cartModel.ProductId)?.Quantity ?? 0;
+            int TotalSold = _userDbContext.Products.FirstOrDefault(p => p.Id == cartModel.ProductId)?.SoldQuantity ?? 0;
+
+            int remainingStock = TotalStock - TotalSold;
+            if (productCart.Quantity >= remainingStock)
+            {
+                return new  BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.QuantityCannotBeIncreased, null));
+            }    
             productCart.Quantity = productCart.Quantity + 1;
             _userDbContext.ProductCarts.Update(productCart);
             await _userDbContext.SaveChangesAsync();

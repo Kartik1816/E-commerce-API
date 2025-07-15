@@ -17,7 +17,11 @@ public class PaginationService
             Data = data,
             TotalRecords = totalRecords,
             PageNumber = pageNumber,
-            PageSize = pageSize
+            PageSize = pageSize,
+            TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize),
+            HasNextPage = pageNumber < (int)Math.Ceiling((double)totalRecords / pageSize),
+            HasPreviousPage = pageNumber > 1,
+            TotalDataOfPage = data.Count
         };
     }
 }

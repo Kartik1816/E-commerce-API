@@ -167,9 +167,11 @@ public partial class UserDbContext : DbContext
             entity.Property(e => e.ProductCode)
                 .HasColumnType("character varying")
                 .HasColumnName("product_code");
+            entity.Property(e => e.Quantity).HasColumnName("quantity");
             entity.Property(e => e.Rate)
                 .HasPrecision(10, 2)
                 .HasColumnName("rate");
+            entity.Property(e => e.SoldQuantity).HasColumnName("sold_quantity");
             entity.Property(e => e.UpdatedAt)
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("updated_at");

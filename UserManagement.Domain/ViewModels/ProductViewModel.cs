@@ -34,4 +34,6 @@ public class ProductViewModel
     public List<IFormFile>? ProductImages { get; set; }
     public List<string>? ImageUrls { get; set; }
     public string? UniqueCode { get; set; }
+    public int StockQuantity { get; set; } = 0;
+    public int TotalSold { get; set; } = 0;
 }

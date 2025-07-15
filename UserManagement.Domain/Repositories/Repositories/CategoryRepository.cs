@@ -42,7 +42,7 @@ public class CategoryRepository : ICategoryRepository
         {
             if (categoryViewModel.Id == 0)
             {
-                bool categoryExists = await _userDbContext.Categories.AnyAsync(c => c.Name == categoryViewModel.Name);
+                bool categoryExists = await _userDbContext.Categories.AnyAsync(c => c.Name.ToLower() == categoryViewModel.Name.ToLower());
                 if (categoryExists)
                 {
                     return new BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.CategoryAlreadyExists, CustomErrorMessage.CategoryAlreadyExists, null));
@@ -126,6 +126,7 @@ public class CategoryRepository : ICategoryRepository
             throw new Exception(CustomErrorMessage.GetAllCategoriesError + e.Message);
         }
     }
+
     public async Task<CategoryViewModel> GetCategoryByIdAsync(int id)
     {
         try
@@ -145,6 +146,61 @@ public class CategoryRepository : ICategoryRepository
         catch (Exception e)
         {
             throw new Exception(CustomErrorMessage.GetCategoryByIdError + e.Message);
+        }
+    }
+
+    public async Task<IActionResult> GetCategoriesByIdsAsync(List<int> categoryIds)
+    {
+        try
+        {
+            if (categoryIds == null || !categoryIds.Any())
+            {
+                return new BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.InvalidCategoryIds, null));
+            }
+
+            List<CategoryViewModel> categories = await _userDbContext.Categories
+                .Where(c => categoryIds.Contains(c.Id) && c.IsDeleted == false && c.IsReleased == true)
+                .Select(c => new CategoryViewModel
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description ?? string.Empty,
+                    IsReleased = (bool)(c.IsReleased ?? false),
+                    ImageUrl = c.ImageUrl
+                })
+                .ToListAsync();
+
+            if (!categories.Any())
+            {
+                return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.CategoryNotFound, CustomErrorMessage.CategoryNotFound, null));
+            }
+
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.GetCategoriesByIdsSuccess, categories));
+        }
+        catch (Exception e)
+        {
+            throw new Exception(CustomErrorMessage.GetCategoriesByIdsError + e.Message);
+        }
+    }
+
+    public async Task<IActionResult> ReleaseCategoryAsync(int id)
+    {
+        try
+        {
+            Category? category = await _userDbContext.Categories.FirstOrDefaultAsync(c => c.Id == id && c.IsDeleted == false);
+            if (category == null)
+            {
+                return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.CategoryNotFound, CustomErrorMessage.CategoryNotFound, null));
+            }
+
+            category.IsReleased = true;
+            _userDbContext.Categories.Update(category);
+            await _userDbContext.SaveChangesAsync();
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.CategoryReleasedSuccessfully, null));
+        }
+        catch (Exception e)
+        {
+            throw new Exception(CustomErrorMessage.CategoryReleaseError + e.Message);
         }
     }
 }

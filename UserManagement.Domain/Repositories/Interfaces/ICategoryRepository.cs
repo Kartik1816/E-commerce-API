@@ -10,4 +10,6 @@ public interface ICategoryRepository
     public Task<IActionResult> DeleteCategoryAsync(int id);
     public Task<List<CategoryViewModel>> GetReleasedCategoriesAsync();
     public Task<CategoryViewModel> GetCategoryByIdAsync(int id);
+    public Task<IActionResult> GetCategoriesByIdsAsync(List<int> categoryIds);
+    public Task<IActionResult> ReleaseCategoryAsync(int id);
 }

@@ -39,7 +39,7 @@ public class ProductRepository : IProductRepository
         {
 
             IQueryable<Product> duplicateCheckQuery = _userDbContext.Products
-                .Where(p => p.Name == productViewModel.Name);
+                .Where(p => p.Name.ToLower() == productViewModel.Name.ToLower());
 
             if (productViewModel.Id > 0)
             {
@@ -56,11 +56,17 @@ public class ProductRepository : IProductRepository
 
             if (isNewProduct)
             {
+                string newProductCode = RandomCodeGenerator.GenerateRandomCode();
+                while (await _userDbContext.Products.AnyAsync(p => p.ProductCode == newProductCode))
+                {
+                    newProductCode = RandomCodeGenerator.GenerateRandomCode();
+                }
+
                 product = new Product
                 {
                     CreatedAt = DateTime.Now,
                     CreatedBy = productViewModel.UserId,
-                    ProductCode = RandomCodeGenerator.GenerateRandomCode()
+                    ProductCode = newProductCode
                 };
                 _userDbContext.Products.Add(product);
             }
@@ -82,6 +88,7 @@ public class ProductRepository : IProductRepository
             product.Description = productViewModel.Description;
             product.CategoryId = productViewModel.CategoryId;
             product.Discount = productViewModel.Discount;
+            product.Quantity = productViewModel.StockQuantity;
 
             await _userDbContext.SaveChangesAsync();
 
@@ -144,7 +151,8 @@ public class ProductRepository : IProductRepository
                     CategoryId = p.CategoryId,
                     ImageUrl = p.ImageUrl,
                     UserId = p.CreatedBy,
-                    Discount = p.Discount ?? 0
+                    Discount = p.Discount ?? 0,
+                    StockQuantity = p.Quantity ?? 0,
                 })
                 .OrderBy(p => p.Id);
             return await _paginationService.GetPaginatedDataAsync(query, paginationRequestModel.PageNumber, paginationRequestModel.PageSize);
@@ -171,7 +179,9 @@ public class ProductRepository : IProductRepository
                     ImageUrl = p.ImageUrl,
                     Discount = (decimal)(p.Discount ?? 0),
                     DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0), 2),
-                    UserId = p.CreatedBy
+                    UserId = p.CreatedBy,
+                    StockQuantity = p.Quantity ?? 0,
+                    UniqueCode = p.ProductCode,
                 })
                 .FirstOrDefaultAsync();
 
@@ -257,7 +267,8 @@ public class ProductRepository : IProductRepository
                             .Where(r => r.ProductId == productId)
                             .Average(r => r.Rating), 1)
                         : 0, // Default rating when no reviews exist
-
+                    StockQuantity = p.Quantity ?? 0,
+                    UniqueCode = p.ProductCode,
                     CommentModels = _userDbContext.Reviews
                         .Where(r => r.ProductId == productId)
                         .Select(r => new CommentModel
@@ -321,7 +332,9 @@ public class ProductRepository : IProductRepository
                 CategoryId = p.CategoryId,
                 ImageUrl = p.ImageUrl,
                 Discount = (decimal)(p.Discount ?? 0),
-                DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0), 2)
+                DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0), 2),
+                StockQuantity = p.Quantity ?? 0,
+                UniqueCode = p.ProductCode,
             }).ToListAsync();
 
             return new JsonResult(new { data = products });
@@ -354,7 +367,9 @@ public class ProductRepository : IProductRepository
                         .ToList(),
                     ImageUrl = p.ImageUrl,
                     Discount = (decimal)(p.Discount ?? 0),
-                    DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0), 2)
+                    DiscountAmount = Math.Round((decimal)((p.Rate * p.Discount / 100) ?? 0), 2),
+                    StockQuantity = p.Quantity ?? 0,
+                    UniqueCode = p.ProductCode,
                 })
                 .ToListAsync();
         }

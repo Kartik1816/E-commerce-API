@@ -60,6 +60,10 @@ public class OrderRepository : IOrderRepository
 
                     await _userDbContext.OrderProducts.AddAsync(orderProduct);
                     await _userDbContext.SaveChangesAsync();
+
+                    pc.SoldQuantity += orderProduct.Quantity ?? 0;
+                    _userDbContext.Products.Update(pc);
+                    await _userDbContext.SaveChangesAsync();
                 }
 
                 await transaction.CommitAsync();

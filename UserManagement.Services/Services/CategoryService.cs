@@ -25,4 +25,12 @@ public class CategoryService : ICategoryService
     {
         return await _categoryRepository.GetCategoryByIdAsync(id);
     }
+    public Task<IActionResult> GetCategoriesByIdsAsync(List<int> categoryIds)
+    {
+        return _categoryRepository.GetCategoriesByIdsAsync(categoryIds);
+    }
+    public async Task<IActionResult> ReleaseCategoryAsync(int id)
+    {
+        return await _categoryRepository.ReleaseCategoryAsync(id);
+    }
 }
