@@ -124,8 +124,8 @@ public class ProductRepository : IProductRepository
                 ProductViewModel = product.Discount > 0 ? productViewModel : null,
                 IsOffer = product.Discount > 0
             };
-            return new OkObjectResult(_responseHandler.Success(isNewProduct ? CustomErrorMessage.ProductAddSuccess : CustomErrorMessage.ProductUpdateSuccess,productOfferModel));
-           
+            return new OkObjectResult(_responseHandler.Success(isNewProduct ? CustomErrorMessage.ProductAddSuccess : CustomErrorMessage.ProductUpdateSuccess, productOfferModel));
+
         }
         catch (Exception ex)
         {
@@ -133,7 +133,7 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task<PaginatedResponse<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId,PaginationRequestModel paginationRequestModel)
+    public async Task<PaginatedResponse<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId, PaginationRequestModel paginationRequestModel)
     {
         try
         {
@@ -156,7 +156,7 @@ public class ProductRepository : IProductRepository
                 })
                 .OrderBy(p => p.Id);
             return await _paginationService.GetPaginatedDataAsync(query, paginationRequestModel.PageNumber, paginationRequestModel.PageSize);
-        }   
+        }
         catch (Exception e)
         {
             throw new Exception(CustomErrorMessage.FetchProductListSuccess + e.Message);
@@ -376,6 +376,217 @@ public class ProductRepository : IProductRepository
         catch (Exception e)
         {
             throw new Exception(CustomErrorMessage.GetOfferedProductsError + e);
+        }
+    }
+
+    public async Task<IActionResult> GetInventoryDetailsAsync(int userId, string timeFilter,string fromDate,string toDate)
+    {
+        try
+        {
+            var inventoryViewModel = new InventoryViewModel();
+
+            // 1. Get all products for the seller
+            List<Product> sellerProducts = await _userDbContext.Products
+                .Where(p => p.CreatedBy == userId)
+                .ToListAsync();
+
+            if (!sellerProducts.Any())
+            {
+                return new NotFoundObjectResult(_responseHandler.NotFoundRequest(CustomErrorCode.ProductNotFound, CustomErrorMessage.NoProductsFound, null));
+            }
+
+            // Prepare query for sold products
+            var orderQuery = _userDbContext.OrderProducts
+                .Where(oi => oi.Product.CreatedBy == userId && oi.Order.Status == "Paid")
+                .Include(oi => oi.Order);
+
+            // 2. Loop through each product and calculate sold, revenue, last sold
+            foreach (Product product in sellerProducts)
+            {
+                List<OrderProduct> soldOrderItems = await _userDbContext.OrderProducts
+                    .Where(oi => oi.ProductId == product.Id && oi.Order.Status == "Paid")
+                    .Include(oi => oi.Order)
+                    .ToListAsync();
+
+                int soldQuantity = soldOrderItems.Sum(oi => oi.Quantity) ?? 0;
+                decimal revenue = soldOrderItems.Sum(oi => oi.Price * oi.Quantity) ?? 0;
+                DateTime lastSoldDate = soldOrderItems.OrderByDescending(oi => oi.Order.CreatedAt)
+                                                .Select(oi => (DateTime?)oi.Order.CreatedAt)
+                                                .FirstOrDefault() ?? DateTime.MinValue;
+
+                inventoryViewModel.InventoryItems.Add(new InventoryItemViewModel
+                {
+                    ProductName = product.Name,
+                    TotalStock = product.Quantity ?? 0,
+                    SoldQuantity = soldQuantity,
+                    Revenue = revenue,
+                    LastSoldDate = lastSoldDate
+                });
+
+                inventoryViewModel.TotalStock += product.Quantity ?? 0;
+            }
+
+            // 3. Calculate remaining stock initially (total stock - total sold)
+            inventoryViewModel.TotalRemainingStock = inventoryViewModel.TotalStock - inventoryViewModel.TotalSoldQuantity;
+
+            // 4. Filter + generate chart
+            var today = DateTime.Now.Date;
+            DateTime startDate;
+            var revenueMap = new Dictionary<string, decimal>();
+            var chartLabels = new List<string>();
+
+            if (timeFilter == "last7days")
+            {
+                startDate = today.AddDays(-6);
+
+                var daysOfWeek = Enumerable.Range(0, 7)
+                    .Select(i => startDate.AddDays(i))
+                    .ToList();
+
+                chartLabels = daysOfWeek.Select(d => d.ToString("ddd")).ToList();
+
+                var weeklySales = await orderQuery
+                    .Where(oi => oi.Order.CreatedAt.Date >= startDate && oi.Order.CreatedAt.Date <= today)
+                    .GroupBy(oi => oi.Order.CreatedAt.Date)
+                    .Select(g => new
+                    {
+                        Date = g.Key,
+                        Revenue = g.Sum(x => x.Price * x.Quantity)
+                    })
+                    .ToListAsync();
+
+                foreach (var item in daysOfWeek)
+                {
+                    string label = item.ToString("ddd");
+                    var sale = weeklySales.FirstOrDefault(x => x.Date == item);
+                    revenueMap[label] = sale?.Revenue ?? 0;
+                }
+
+                inventoryViewModel.InventoryItems = inventoryViewModel.InventoryItems
+                    .Where(item => item.LastSoldDate.Date >= startDate)
+                    .ToList();
+            }
+            else if (timeFilter == "last30days")
+            {
+                startDate = today.AddDays(-29);
+
+                var dateList = Enumerable.Range(0, 30)
+                    .Select(i => startDate.AddDays(i))
+                    .ToList();
+
+                chartLabels = dateList.Select(d => d.ToString("dd MMM")).ToList();
+
+                var dailySales = await orderQuery
+                    .Where(oi => oi.Order.CreatedAt.Date >= startDate && oi.Order.CreatedAt.Date <= today)
+                    .GroupBy(oi => oi.Order.CreatedAt.Date)
+                    .Select(g => new
+                    {
+                        Date = g.Key,
+                        Revenue = g.Sum(x => x.Price * x.Quantity)
+                    })
+                    .ToListAsync();
+
+                foreach (var date in dateList)
+                {
+                    string label = date.ToString("dd MMM");
+                    var sale = dailySales.FirstOrDefault(x => x.Date == date);
+                    revenueMap[label] = sale?.Revenue ?? 0;
+                }
+
+                inventoryViewModel.InventoryItems = inventoryViewModel.InventoryItems
+                    .Where(item => item.LastSoldDate.Date >= startDate)
+                    .ToList();
+            }
+            else if (timeFilter == "custom")
+            {
+                if (string.IsNullOrEmpty(fromDate) || string.IsNullOrEmpty(toDate) ||
+                    !DateTime.TryParse(fromDate, out DateTime from) || !DateTime.TryParse(toDate, out DateTime to))
+                {
+                    return new BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.InvalidDateRange, null));
+                }
+
+                startDate = from.Date;
+                var endDate = to.Date;
+
+                if (startDate > endDate)
+                {
+                    return new BadRequestObjectResult(_responseHandler.BadRequest(CustomErrorCode.IsValid, CustomErrorMessage.StartDateAfterEndDate, null));
+                }
+
+                var customDates = Enumerable.Range(0, (endDate - startDate).Days + 1)
+                    .Select(i => startDate.AddDays(i))
+                    .ToList();
+
+                chartLabels = customDates.Select(d => d.ToString("dd MMM")).ToList();
+
+                var customSales = await orderQuery
+                    .Where(oi => oi.Order.CreatedAt.Date >= startDate && oi.Order.CreatedAt.Date <= endDate)
+                    .GroupBy(oi => oi.Order.CreatedAt.Date)
+                    .Select(g => new
+                    {
+                        Date = g.Key,
+                        Revenue = g.Sum(x => x.Price * x.Quantity)
+                    })
+                    .ToListAsync();
+
+                foreach (var date in customDates)
+                {
+                    string label = date.ToString("dd MMM");
+                    var sale = customSales.FirstOrDefault(x => x.Date == date);
+                    revenueMap[label] = sale?.Revenue ?? 0;
+                }
+
+                inventoryViewModel.InventoryItems = inventoryViewModel.InventoryItems
+                    .Where(item => item.LastSoldDate.Date >= startDate && item.LastSoldDate.Date <= endDate)
+                    .ToList();
+            }
+            else // last12months or all time
+            {
+                startDate = today.AddMonths(-11);
+
+                var monthLabels = Enumerable.Range(0, 12)
+                    .Select(i => today.AddMonths(-11 + i))
+                    .ToList();
+
+                chartLabels = monthLabels.Select(m => m.ToString("MMM")).ToList();
+
+                var monthlySales = await orderQuery
+                    .Where(oi => oi.Order.CreatedAt >= startDate && oi.Order.CreatedAt <= today)
+                    .GroupBy(oi => new { oi.Order.CreatedAt.Year, oi.Order.CreatedAt.Month })
+                    .Select(g => new
+                    {
+                        Year = g.Key.Year,
+                        Month = g.Key.Month,
+                        Revenue = g.Sum(x => x.Price * x.Quantity)
+                    })
+                    .ToListAsync();
+
+                foreach (var m in monthLabels)
+                {
+                    string label = m.ToString("MMM");
+                    var sale = monthlySales.FirstOrDefault(x => x.Year == m.Year && x.Month == m.Month);
+                    revenueMap[label] = sale?.Revenue ?? 0;
+                }
+
+                inventoryViewModel.InventoryItems = inventoryViewModel.InventoryItems
+                    .Where(item => item.LastSoldDate >= startDate)
+                    .ToList();
+            }
+
+            // 5. Assign final chart data
+            inventoryViewModel.ChartLabels = chartLabels;
+            inventoryViewModel.ChartData = chartLabels.Select(lbl => revenueMap.ContainsKey(lbl) ? revenueMap[lbl] : 0).ToList();
+
+            // 6. Final summary totals (only filtered data now)
+            inventoryViewModel.TotalRevenue = inventoryViewModel.InventoryItems.Sum(i => i.Revenue);
+            inventoryViewModel.TotalSoldQuantity = inventoryViewModel.InventoryItems.Sum(i => i.SoldQuantity);
+            inventoryViewModel.TotalRemainingStock = inventoryViewModel.InventoryItems.Sum(i => i.TotalStock - i.SoldQuantity);
+
+            return new OkObjectResult(_responseHandler.Success(CustomErrorMessage.GetInventoryDetailsSuccess, inventoryViewModel));
+        }
+        catch (Exception e)
+        {
+            throw new Exception(CustomErrorMessage.GetInventoryDetailsError + e);
         }
     }
 }

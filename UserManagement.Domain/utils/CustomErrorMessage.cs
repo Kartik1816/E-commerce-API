@@ -115,4 +115,9 @@ public class CustomErrorMessage
     public const string CategoryReleaseError = "An error occurred while releasing the category.";
     public const string QuantityCannotBeIncreased = "Quantity cannot be increased as it exceeds available stock.";
     public const string QuantityCannotBeDecreased = "Quantity cannot be decreased below 1.";
+    public const string GetInventoryDetailsError = "An error occurred while fetching inventory details.";
+    public const string NoProductsFound = "No products found in the inventory.";
+    public const string GetInventoryDetailsSuccess = "Inventory details fetched successfully.";
+    public const string InvalidDateRange = "The date range is invalid.";
+    public const string StartDateAfterEndDate = "Start date cannot be after end date.";
 }

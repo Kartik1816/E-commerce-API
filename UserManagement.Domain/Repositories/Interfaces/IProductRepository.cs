@@ -7,7 +7,7 @@ public interface IProductRepository
 {
     public Task<IActionResult> SaveProductAsync(ProductViewModel productViewModel);
 
-    public Task<PaginatedResponse<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId,PaginationRequestModel paginationRequestModel);
+    public Task<PaginatedResponse<ProductViewModel>> GetProductsByCategoryAsync(int categoryId, int userId, PaginationRequestModel paginationRequestModel);
 
     public Task<IActionResult> GetProductDetails(int productId);
 
@@ -18,6 +18,7 @@ public interface IProductRepository
     public Task<IActionResult> GetMinMaxDiscount();
 
     public Task<IActionResult> GetOfferedProducts();
-    
+
     public Task<List<ProductViewModel>> GetTopFiveOfferedProducts();
+    public Task<IActionResult> GetInventoryDetailsAsync(int userId, string timeFilter,string fromDate, string toDate);
 }
